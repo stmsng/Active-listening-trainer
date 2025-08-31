@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import ChatInterface, { Message } from "@/components/chat-interface";
 import { toast } from "sonner";
-import { b } from "@/baml_client";
+import { useTalk } from "@/baml_client/react/hooks";
 
 interface AIPersonality {
   name: string;
@@ -43,9 +43,9 @@ const DEMO_AI: AIPersonality = {
 
 export default function TrainingSession() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [sessionStarted, setSessionStarted] = useState(false);
   const router = useRouter();
+  const talkMutation = useTalk({ stream: false });
 
   useEffect(() => {
     // Start the conversation with an initial message from the AI
@@ -61,7 +61,30 @@ export default function TrainingSession() {
     }
   }, [sessionStarted]);
 
-  const handleSendMessage = async (messageText: string) => {
+  // Handle AI response when mutation completes
+  useEffect(() => {
+    if (talkMutation.data && talkMutation.isSuccess) {
+      const aiMessage: Message = {
+        id: (Date.now() + Math.random()).toString(),
+        text: talkMutation.data,
+        speaker: "ai",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+      talkMutation.reset(); // Reset for next call
+    }
+  }, [talkMutation.data, talkMutation.isSuccess]);
+
+  // Handle errors
+  useEffect(() => {
+    if (talkMutation.error) {
+      console.error("Error calling BAML:", talkMutation.error);
+      toast.error("Failed to get response. Please check your OpenAI API key in environment variables.");
+      talkMutation.reset();
+    }
+  }, [talkMutation.error]);
+
+  const handleSendMessage = (messageText: string) => {
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -71,53 +94,25 @@ export default function TrainingSession() {
     };
     setMessages((prev) => [...prev, userMessage]);
 
-    setIsLoading(true);
+    // Convert messages to BAML format
+    const bamlHistory = messages.map((msg) => ({
+      text: msg.text,
+      speaker: msg.speaker === "user" ? "user" as const : "ai" as const,
+    }));
 
-    try {
-      // Convert messages to BAML format
-      const bamlHistory = messages.map((msg) => ({
-        text: msg.text,
-        speaker: msg.speaker === "user" ? "user" as const : "ai" as const,
-      }));
+    // Add the new user message to history
+    bamlHistory.push({
+      text: messageText,
+      speaker: "user" as const,
+    });
 
-      // Add the new user message to history
-      bamlHistory.push({
-        text: messageText,
-        speaker: "user" as const,
-      });
-
-      // Call BAML function
-      const response = await b.Talk(
-        DEMO_AI.characteristics,
-        DEMO_AI.scenario,
-        true, // pretending mode
-        bamlHistory
-      );
-
-      // Add AI response
-      const aiMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: response,
-        speaker: "ai",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
-
-    } catch (error) {
-      console.error("Error calling BAML:", error);
-      toast.error("Failed to get response. Please check your OpenAI API key in environment variables.");
-      
-      // Add a fallback message for demo purposes
-      const fallbackMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        text: "I appreciate you asking that question. It really means a lot that you're taking the time to listen to me. The pain feels so heavy right now, and having someone who wants to understand makes a difference.",
-        speaker: "ai",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, fallbackMessage]);
-    } finally {
-      setIsLoading(false);
-    }
+    // Call BAML function using the hook
+    talkMutation.mutate(
+      DEMO_AI.characteristics,
+      DEMO_AI.scenario,
+      true, // pretending mode
+      bamlHistory
+    );
   };
 
   const handleEndSession = async () => {
@@ -159,7 +154,7 @@ export default function TrainingSession() {
           aiAvatar={DEMO_AI.avatar}
           scenario={DEMO_AI.scenario}
           messages={messages}
-          isLoading={isLoading}
+          isLoading={talkMutation.isPending}
           onSendMessage={handleSendMessage}
           onEndSession={handleEndSession}
         />

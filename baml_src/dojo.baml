@@ -60,7 +60,14 @@ function Talk(
 
 class Grade {
     letter_grade string @description("A, B, C, D, F")
+    effective_responses ResponseNote[]
+    areas_for_improvement ResponseNote[]
     feedback string
+}
+
+class ResponseNote {
+    original_content string
+    grader_note string
 }
 
 function GradeActiveListening(

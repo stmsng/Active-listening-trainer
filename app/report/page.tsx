@@ -10,7 +10,7 @@ import { Progress } from "@/components/ui/progress";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { CheckCircle, XCircle, TrendingUp, ArrowLeft, Download } from "lucide-react";
 import { toast } from "sonner";
-import { b } from "@/baml_client";
+import { useGradeActiveListening } from "@/baml_client/react/hooks";
 
 interface SessionData {
   aiName: string;
@@ -26,6 +26,14 @@ interface SessionData {
 
 interface Grade {
   letter_grade: string;
+  effective_responses: Array<{
+    original_content: string;
+    grader_note: string;
+  }>;
+  areas_for_improvement: Array<{
+    original_content: string;
+    grader_note: string;
+  }>;
   feedback: string;
 }
 
@@ -63,8 +71,8 @@ const getGradeScore = (grade: string) => {
 export default function ReportPage() {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [grade, setGrade] = useState<Grade | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const gradeMutation = useGradeActiveListening({ stream: false });
 
   useEffect(() => {
     const loadSessionData = () => {
@@ -89,51 +97,38 @@ export default function ReportPage() {
     loadSessionData();
   }, [router]);
 
-  const generateGrade = async (data: SessionData) => {
-    try {
-      const bamlHistory = data.messages.map((msg) => ({
-        text: msg.text,
-        speaker: msg.speaker === "user" ? "user" as const : "ai" as const,
-      }));
-
-      const gradeResult = await b.GradeActiveListening(
-        data.scenario,
-        bamlHistory
-      );
-
-      setGrade(gradeResult);
-    } catch (error) {
-      console.error("Error generating grade:", error);
-      // Fallback grade for demo purposes
-      setGrade({
-        letter_grade: "B+",
-        feedback: "Good active listening skills demonstrated. You asked thoughtful questions and showed empathy. Areas for improvement: Try to reflect the speaker's emotions more explicitly and ask more open-ended questions to encourage deeper sharing."
-      });
-    } finally {
-      setIsLoading(false);
+  // Handle grade response when mutation completes
+  useEffect(() => {
+    if (gradeMutation.data && gradeMutation.isSuccess) {
+      setGrade(gradeMutation.data);
+      gradeMutation.reset(); // Reset for next call
     }
+  }, [gradeMutation.data, gradeMutation.isSuccess]);
+
+  // Handle errors
+  useEffect(() => {
+    if (gradeMutation.error) {
+      console.error("Error generating grade:", gradeMutation.error);
+      toast.error("Failed to generate grade. Please check your OpenAI API key.");
+      gradeMutation.reset();
+    }
+  }, [gradeMutation.error]);
+
+  const generateGrade = (data: SessionData) => {
+    const bamlHistory = data.messages.map((msg) => ({
+      text: msg.text,
+      speaker: msg.speaker === "user" ? "user" as const : "ai" as const,
+    }));
+
+    gradeMutation.mutate(
+      data.scenario,
+      bamlHistory
+    );
   };
 
-  const getExampleResponses = () => {
-    if (!sessionData) return { helpful: [], harmful: [] };
+  // No need for this function anymore - we get real data from BAML
 
-    const userMessages = sessionData.messages.filter(msg => msg.speaker === "user");
-    
-    // Mock examples - in reality, this would come from your AI analysis
-    const helpful = [
-      userMessages[0]?.text || "How are you feeling about this loss?",
-      userMessages[1]?.text || "That sounds really difficult to go through.",
-    ];
-    
-    const harmful = [
-      "At least you can get a new dog.", // Example of what NOT to say
-      "Everything happens for a reason.", // Another poor response
-    ];
-
-    return { helpful, harmful };
-  };
-
-  if (isLoading) {
+  if (gradeMutation.isPending || (!sessionData || !grade)) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -159,7 +154,6 @@ export default function ReportPage() {
     );
   }
 
-  const examples = getExampleResponses();
   const gradeScore = getGradeScore(grade.letter_grade);
 
   return (
@@ -266,14 +260,19 @@ export default function ReportPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {examples.helpful.slice(0, 3).map((response, index) => (
+              {grade.effective_responses.map((response, index) => (
                 <div key={index} className="bg-green-50 border border-green-200 p-3 rounded-lg">
-                  <p className="text-sm">"{response}"</p>
+                  <p className="text-sm">"{response.original_content}"</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {response.grader_note}
+                  </p>
                 </div>
               ))}
-              <p className="text-sm text-muted-foreground">
-                These responses demonstrated empathy and encouraged the speaker to share more.
-              </p>
+              {grade.effective_responses.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No effective responses identified in this session.
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -286,17 +285,19 @@ export default function ReportPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {examples.harmful.map((response, index) => (
+              {grade.areas_for_improvement.map((response, index) => (
                 <div key={index} className="bg-orange-50 border border-orange-200 p-3 rounded-lg">
-                  <p className="text-sm">"{response}"</p>
+                  <p className="text-sm">"{response.original_content}"</p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Avoid minimizing feelings or offering quick fixes
+                    {response.grader_note}
                   </p>
                 </div>
               ))}
-              <p className="text-sm text-muted-foreground">
-                Focus on validation and open-ended questions rather than advice-giving.
-              </p>
+              {grade.areas_for_improvement.length === 0 && (
+                <p className="text-sm text-muted-foreground">
+                  No areas for improvement identified - excellent work!
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

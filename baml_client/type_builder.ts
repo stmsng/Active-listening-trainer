@@ -29,7 +29,9 @@ export default class TypeBuilder {
     
     CoachCharacteristics: ClassViewer<'CoachCharacteristics', "name" | "introversion" | "communication_skill" | "openness" | "conscientiousness" | "age" | "gender" | "nationality" | "reactivity">;
     
-    Grade: ClassViewer<'Grade', "letter_grade" | "feedback">;
+    Grade: ClassViewer<'Grade', "letter_grade" | "effective_responses" | "areas_for_improvement" | "feedback">;
+    
+    ResponseNote: ClassViewer<'ResponseNote', "original_content" | "grader_note">;
     
     Statement: ClassViewer<'Statement', "text" | "speaker">;
     
@@ -38,7 +40,7 @@ export default class TypeBuilder {
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "CoachCharacteristics","Grade","Statement",
+            "CoachCharacteristics","Grade","ResponseNote","Statement",
           ]),
           enums: new Set([
             
@@ -51,7 +53,11 @@ export default class TypeBuilder {
         ]);
         
         this.Grade = this.tb.classViewer("Grade", [
-          "letter_grade","feedback",
+          "letter_grade","effective_responses","areas_for_improvement","feedback",
+        ]);
+        
+        this.ResponseNote = this.tb.classViewer("ResponseNote", [
+          "original_content","grader_note",
         ]);
         
         this.Statement = this.tb.classViewer("Statement", [

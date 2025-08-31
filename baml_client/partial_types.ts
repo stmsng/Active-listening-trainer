@@ -20,7 +20,7 @@ $ pnpm add @boundaryml/baml
 
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
-import type {  CoachCharacteristics,  Grade,  Statement } from "./types"
+import type {  CoachCharacteristics,  Grade,  ResponseNote,  Statement } from "./types"
 import type * as types from "./types"
 
 /******************************************************************************
@@ -49,7 +49,13 @@ export namespace partial_types {
     }
     export interface Grade {
       letter_grade?: string | null
+      effective_responses: ResponseNote[]
+      areas_for_improvement: ResponseNote[]
       feedback?: string | null
+    }
+    export interface ResponseNote {
+      original_content?: string | null
+      grader_note?: string | null
     }
     export interface Statement {
       text?: string | null

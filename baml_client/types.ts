@@ -62,7 +62,15 @@ export interface CoachCharacteristics {
 
 export interface Grade {
   letter_grade: string
+  effective_responses: ResponseNote[]
+  areas_for_improvement: ResponseNote[]
   feedback: string
+  
+}
+
+export interface ResponseNote {
+  original_content: string
+  grader_note: string
   
 }
 

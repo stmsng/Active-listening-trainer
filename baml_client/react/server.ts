@@ -24,7 +24,7 @@ import { b } from '../index';
 import type { Check, Checked  } from "../types";
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml";
 
-import type {  CoachCharacteristics,  Grade,  Statement } from "../types"
+import type {  CoachCharacteristics,  Grade,  ResponseNote,  Statement } from "../types"
 
 import type * as types from "../types"
 
