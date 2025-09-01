@@ -14,4 +14,11 @@ const nextConfig = {
   },
 };
 
-export default withBaml()(nextConfig);
+export default withBaml()(
+  withSentryConfig(nextConfig, {
+    org: "active-listening-dojo",
+    project: "active-listening-dojo",
+    silent: !process.env.CI,
+    disableLogger: true,
+  }),
+);
