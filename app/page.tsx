@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Brain, Users, Star, Zap, Heart } from "lucide-react";
 
+
 export default function HomePage() {
   return (
     <div className="min-h-screen">

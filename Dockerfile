@@ -2,7 +2,7 @@
 
 # Adjust NODE_VERSION as desired
 ARG NODE_VERSION=22.14.0
-FROM node:${NODE_VERSION}-slim AS base
+FROM node:${NODE_VERSION} AS base
 
 LABEL fly_launch_runtime="Next.js"
 
@@ -21,8 +21,7 @@ RUN npm install -g pnpm@$PNPM_VERSION
 FROM base AS build
 
 # Install packages needed to build node modules
-RUN apt-get update -qq && \
-    apt-get install --no-install-recommends -y build-essential node-gyp pkg-config python-is-python3
+RUN apt-get update && apt-get install -y build-essential python3 pkg-config && rm -rf /var/lib/apt/lists/*
 
 # Install node modules
 COPY package.json pnpm-lock.yaml ./
@@ -40,6 +39,8 @@ RUN pnpm prune --prod
 
 # Final stage for app image
 FROM base
+
+# CA certificates are already included in Node.js image
 
 # Copy built application
 COPY --from=build /app /app
