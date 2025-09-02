@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
+import { PostHogProvider } from "../components/PostHogProvider"
 
 export const metadata: Metadata = {
   title: "Active Listening Dojo - Master Active Listening Through AI Conversations",
@@ -20,9 +21,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <Suspense fallback={null}>{children}</Suspense>
-        <Analytics />
+      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>        
+        <PostHogProvider>
+          <Suspense fallback={null}>{children}</Suspense>
+          <Analytics />
+        </PostHogProvider>
       </body>
     </html>
   )
