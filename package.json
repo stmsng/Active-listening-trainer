@@ -9,7 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
-    "@boundaryml/baml": "^0.206.1",
+    "@boundaryml/baml": "^0.208.5",
     "@boundaryml/baml-nextjs-plugin": "^0.1.0",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "1.2.2",

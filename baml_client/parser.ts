@@ -23,7 +23,7 @@ import { toBamlError } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type { partial_types } from "./partial_types"
 import type * as types from "./types"
-import type {CoachCharacteristics, Grade, ResponseNote, Statement} from "./types"
+import type {CoachCharacteristics, CoachState, Grade, HistoryItem, ResponseNote, Update} from "./types"
 import type TypeBuilder from "./type_builder"
 
 export class LlmResponseParser {
@@ -35,9 +35,9 @@ export class LlmResponseParser {
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, env?: Record<string, string | undefined> }
   ): types.Grade {
     try {
-      const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
-      const env: Record<string, string> = Object.fromEntries(
-        Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const __env__: Record<string, string> = Object.fromEntries(
+        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
       );
       return this.runtime.parseLlmResponse(
         "GradeActiveListening",
@@ -46,7 +46,7 @@ export class LlmResponseParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
-        env,
+        __env__,
       ) as types.Grade
     } catch (error) {
       throw toBamlError(error);
@@ -56,11 +56,11 @@ export class LlmResponseParser {
   Talk(
       llmResponse: string,
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, env?: Record<string, string | undefined> }
-  ): string {
+  ): types.Update {
     try {
-      const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
-      const env: Record<string, string> = Object.fromEntries(
-        Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const __env__: Record<string, string> = Object.fromEntries(
+        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
       );
       return this.runtime.parseLlmResponse(
         "Talk",
@@ -69,8 +69,8 @@ export class LlmResponseParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
-        env,
-      ) as string
+        __env__,
+      ) as types.Update
     } catch (error) {
       throw toBamlError(error);
     }
@@ -87,9 +87,9 @@ export class LlmStreamParser {
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, env?: Record<string, string | undefined> }
   ): partial_types.Grade {
     try {
-      const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
-      const env: Record<string, string> = Object.fromEntries(
-        Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const __env__: Record<string, string> = Object.fromEntries(
+        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
       );
       return this.runtime.parseLlmResponse(
         "GradeActiveListening",
@@ -98,7 +98,7 @@ export class LlmStreamParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
-        env,
+        __env__,
       ) as partial_types.Grade
     } catch (error) {
       throw toBamlError(error);
@@ -108,11 +108,11 @@ export class LlmStreamParser {
   Talk(
       llmResponse: string,
       __baml_options__?: { tb?: TypeBuilder, clientRegistry?: ClientRegistry, env?: Record<string, string | undefined> }
-  ): string {
+  ): partial_types.Update {
     try {
-      const rawEnv = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
-      const env: Record<string, string> = Object.fromEntries(
-        Object.entries(rawEnv).filter(([_, value]) => value !== undefined) as [string, string][]
+      const __rawEnv__ = __baml_options__?.env ? { ...process.env, ...__baml_options__.env } : { ...process.env };
+      const __env__: Record<string, string> = Object.fromEntries(
+        Object.entries(__rawEnv__).filter(([_, value]) => value !== undefined) as [string, string][]
       );
       return this.runtime.parseLlmResponse(
         "Talk",
@@ -121,8 +121,8 @@ export class LlmStreamParser {
         this.ctxManager.cloneContext(),
         __baml_options__?.tb?.__tb(),
         __baml_options__?.clientRegistry,
-        env,
-      ) as string
+        __env__,
+      ) as partial_types.Update
     } catch (error) {
       throw toBamlError(error);
     }

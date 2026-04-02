@@ -24,7 +24,7 @@ import { b } from '../index';
 import type { Check, Checked  } from "../types";
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml";
 
-import type {  CoachCharacteristics,  Grade,  ResponseNote,  Statement } from "../types"
+import type {  CoachCharacteristics,  CoachState,  Grade,  HistoryItem,  ResponseNote,  Update } from "../types"
 
 import type * as types from "../types"
 
@@ -39,19 +39,19 @@ import type * as types from "../types"
  * BAML stream function. The returned stream yields incremental updates.
  *
  * @param { string } scenario - Input parameter.
- * @param { types.Statement[] } history - Input parameter.
+ * @param { types.HistoryItem[] } history - Input parameter.
  *
  * @returns {ReadableStream<Uint8Array>} A stream that yields incremental updates from the action.
  */
 export const GradeActiveListening = async (
   scenario: string,
-  history: types.Statement[],
+  history: types.HistoryItem[],
 ): Promise<ReadableStream<Uint8Array>> => {
-  const stream = b.stream.GradeActiveListening(
+  const __stream__ = b.stream.GradeActiveListening(
     scenario,
     history,
   );
-  return Promise.resolve(stream.toStreamable());
+  return Promise.resolve(__stream__.toStreamable());
 };
 
 /**
@@ -62,22 +62,19 @@ export const GradeActiveListening = async (
  *
  * @param { types.CoachCharacteristics } coach_characteristics - Input parameter.
  * @param { string } scenario - Input parameter.
- * @param { boolean } pretending - Input parameter.
- * @param { types.Statement[] } history - Input parameter.
+ * @param { types.HistoryItem[] } history - Input parameter.
  *
  * @returns {ReadableStream<Uint8Array>} A stream that yields incremental updates from the action.
  */
 export const Talk = async (
   coach_characteristics: types.CoachCharacteristics,
   scenario: string,
-  pretending: boolean,
-  history: types.Statement[],
+  history: types.HistoryItem[],
 ): Promise<ReadableStream<Uint8Array>> => {
-  const stream = b.stream.Talk(
+  const __stream__ = b.stream.Talk(
     coach_characteristics,
     scenario,
-    pretending,
     history,
   );
-  return Promise.resolve(stream.toStreamable());
+  return Promise.resolve(__stream__.toStreamable());
 };

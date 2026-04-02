@@ -27,20 +27,24 @@ export { FieldType, EnumBuilder, ClassBuilder }
 export default class TypeBuilder {
     private tb: _TypeBuilder;
     
-    CoachCharacteristics: ClassViewer<'CoachCharacteristics', "name" | "introversion" | "communication_skill" | "openness" | "conscientiousness" | "age" | "gender" | "nationality" | "reactivity">;
+    CoachCharacteristics: ClassViewer<'CoachCharacteristics', "name" | "is_therapist" | "introversion" | "communication_skill" | "openness" | "conscientiousness" | "age" | "gender" | "nationality" | "reactivity" | "special_notes">;
+    
+    CoachState: ClassViewer<'CoachState', "relaxed" | "nervous" | "openness" | "shy" | "aggressive" | "secretly_angry">;
     
     Grade: ClassViewer<'Grade', "letter_grade" | "effective_responses" | "areas_for_improvement" | "feedback">;
     
+    HistoryItem: ClassViewer<'HistoryItem', "text" | "speaker" | "timestamp" | "coach_state">;
+    
     ResponseNote: ClassViewer<'ResponseNote', "original_content" | "grader_note">;
     
-    Statement: ClassViewer<'Statement', "text" | "speaker">;
+    Update: ClassViewer<'Update', "terminate_session" | "coach_state" | "coach_message">;
     
     
 
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "CoachCharacteristics","Grade","ResponseNote","Statement",
+            "CoachCharacteristics","CoachState","Grade","HistoryItem","ResponseNote","Update",
           ]),
           enums: new Set([
             
@@ -49,19 +53,27 @@ export default class TypeBuilder {
         });
         
         this.CoachCharacteristics = this.tb.classViewer("CoachCharacteristics", [
-          "name","introversion","communication_skill","openness","conscientiousness","age","gender","nationality","reactivity",
+          "name","is_therapist","introversion","communication_skill","openness","conscientiousness","age","gender","nationality","reactivity","special_notes",
+        ]);
+        
+        this.CoachState = this.tb.classViewer("CoachState", [
+          "relaxed","nervous","openness","shy","aggressive","secretly_angry",
         ]);
         
         this.Grade = this.tb.classViewer("Grade", [
           "letter_grade","effective_responses","areas_for_improvement","feedback",
         ]);
         
+        this.HistoryItem = this.tb.classViewer("HistoryItem", [
+          "text","speaker","timestamp","coach_state",
+        ]);
+        
         this.ResponseNote = this.tb.classViewer("ResponseNote", [
           "original_content","grader_note",
         ]);
         
-        this.Statement = this.tb.classViewer("Statement", [
-          "text","speaker",
+        this.Update = this.tb.classViewer("Update", [
+          "terminate_session","coach_state","coach_message",
         ]);
         
         

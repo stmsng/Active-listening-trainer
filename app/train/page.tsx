@@ -27,7 +27,8 @@ interface AIPersonality {
 const DEMO_AI: AIPersonality = {
   name: "Sarah",
   avatar: "/professional-woman-therapist-headshot-warm-smile.png",
-  scenario: "I'm struggling with the recent loss of my dog. It's been really hard to process this grief, and I feel like I need someone to just listen and understand what I'm going through.",
+  scenario:
+    "I'm struggling with the recent loss of my dog. It's been really hard to process this grief, and I feel like I need someone to just listen and understand what I'm going through.",
   characteristics: {
     name: "Sarah",
     introversion: 6,
@@ -38,14 +39,14 @@ const DEMO_AI: AIPersonality = {
     gender: "female",
     nationality: "American",
     reactivity: 4,
-  }
+  },
 };
 
 export default function TrainingSession() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [sessionStarted, setSessionStarted] = useState(false);
   const router = useRouter();
-  const talkMutation = useTalk({ stream: false });
+  const talkMutation = useTalk({ stream: true });
 
   useEffect(() => {
     // Start the conversation with an initial message from the AI
@@ -63,23 +64,25 @@ export default function TrainingSession() {
 
   // Handle AI response when mutation completes
   useEffect(() => {
-    if (talkMutation.data && talkMutation.isSuccess) {
+    if (talkMutation.streamData && talkMutation.isSuccess && talkMutation.data) {
       const aiMessage: Message = {
         id: (Date.now() + Math.random()).toString(),
-        text: talkMutation.data,
+        text: talkMutation.streamData,
         speaker: "ai",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
       talkMutation.reset(); // Reset for next call
     }
-  }, [talkMutation.data, talkMutation.isSuccess]);
+  }, [talkMutation.streamData, talkMutation.isSuccess]);
 
   // Handle errors
   useEffect(() => {
     if (talkMutation.error) {
       console.error("Error calling BAML:", talkMutation.error);
-      toast.error("Failed to get response. Please check your OpenAI API key in environment variables.");
+      toast.error(
+        "Failed to get response. Please check your OpenAI API key in environment variables.",
+      );
       talkMutation.reset();
     }
   }, [talkMutation.error]);
@@ -97,7 +100,7 @@ export default function TrainingSession() {
     // Convert messages to BAML format
     const bamlHistory = messages.map((msg) => ({
       text: msg.text,
-      speaker: msg.speaker === "user" ? "user" as const : "ai" as const,
+      speaker: msg.speaker === "user" ? ("user" as const) : ("ai" as const),
     }));
 
     // Add the new user message to history
@@ -111,13 +114,15 @@ export default function TrainingSession() {
       DEMO_AI.characteristics,
       DEMO_AI.scenario,
       true, // pretending mode
-      bamlHistory
+      bamlHistory,
     );
   };
 
   const handleEndSession = async () => {
     if (messages.length < 4) {
-      toast.error("Please have a longer conversation before ending the session.");
+      toast.error(
+        "Please have a longer conversation before ending the session.",
+      );
       return;
     }
 
@@ -125,7 +130,7 @@ export default function TrainingSession() {
       // Convert messages for grading
       const bamlHistory = messages.map((msg) => ({
         text: msg.text,
-        speaker: msg.speaker === "user" ? "user" as const : "ai" as const,
+        speaker: msg.speaker === "user" ? ("user" as const) : ("ai" as const),
       }));
 
       // Store session data in localStorage for the report page
@@ -137,7 +142,7 @@ export default function TrainingSession() {
       };
 
       localStorage.setItem("lastSession", JSON.stringify(sessionData));
-      
+
       // Navigate to report page
       router.push("/report");
     } catch (error) {
@@ -149,6 +154,11 @@ export default function TrainingSession() {
   return (
     <div className="min-h-screen bg-background">
       <div className="h-screen flex flex-col">
+        <div>
+          <h1>Testing</h1>
+          {talkMutation.error && <p>{talkMutation.error.message}</p>}
+          <p>{talkMutation.streamData}</p>
+        </div>
         <ChatInterface
           aiName={DEMO_AI.name}
           aiAvatar={DEMO_AI.avatar}
@@ -158,6 +168,7 @@ export default function TrainingSession() {
           onSendMessage={handleSendMessage}
           onEndSession={handleEndSession}
         />
+        ;
       </div>
     </div>
   );

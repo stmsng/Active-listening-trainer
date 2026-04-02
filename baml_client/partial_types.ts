@@ -20,7 +20,7 @@ $ pnpm add @boundaryml/baml
 
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
-import type {  CoachCharacteristics,  Grade,  ResponseNote,  Statement } from "./types"
+import type {  CoachCharacteristics,  CoachState,  Grade,  HistoryItem,  ResponseNote,  Update } from "./types"
 import type * as types from "./types"
 
 /******************************************************************************
@@ -38,14 +38,24 @@ export interface StreamState<T> {
 export namespace partial_types {
     export interface CoachCharacteristics {
       name?: string | null
+      is_therapist?: boolean | null
       introversion?: number | null
       communication_skill?: number | null
       openness?: number | null
       conscientiousness?: number | null
       age?: number | null
-      gender?: "male" | "female" | "other" | null
+      gender?: "male" | "female" | "nonbinary" | null
       nationality?: string | null
       reactivity?: number | null
+      special_notes?: string | null
+    }
+    export interface CoachState {
+      relaxed?: number | null
+      nervous?: number | null
+      openness?: number | null
+      shy?: number | null
+      aggressive?: number | null
+      secretly_angry?: number | null
     }
     export interface Grade {
       letter_grade?: string | null
@@ -53,12 +63,19 @@ export namespace partial_types {
       areas_for_improvement: ResponseNote[]
       feedback?: string | null
     }
+    export interface HistoryItem {
+      text?: string | null
+      speaker?: "user" | "ai" | null
+      timestamp?: string | null
+      coach_state?: CoachState | null
+    }
     export interface ResponseNote {
       original_content?: string | null
       grader_note?: string | null
     }
-    export interface Statement {
-      text?: string | null
-      speaker?: "user" | "ai" | null
+    export interface Update {
+      terminate_session?: boolean | null
+      coach_state?: CoachState | null
+      coach_message?: string | null
     }
 }

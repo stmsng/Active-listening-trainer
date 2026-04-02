@@ -49,14 +49,26 @@ export function get_checks<CheckName extends string>(checks: Record<CheckName, C
 }
 export interface CoachCharacteristics {
   name: string
+  is_therapist: boolean
   introversion: number
   communication_skill: number
   openness: number
   conscientiousness: number
   age: number
-  gender: "male" | "female" | "other"
+  gender: "male" | "female" | "nonbinary"
   nationality: string
   reactivity: number
+  special_notes: string
+  
+}
+
+export interface CoachState {
+  relaxed: number
+  nervous: number
+  openness: number
+  shy: number
+  aggressive: number
+  secretly_angry: number
   
 }
 
@@ -68,14 +80,23 @@ export interface Grade {
   
 }
 
+export interface HistoryItem {
+  text: string
+  speaker: "user" | "ai"
+  timestamp: string
+  coach_state?: CoachState | null
+  
+}
+
 export interface ResponseNote {
   original_content: string
   grader_note: string
   
 }
 
-export interface Statement {
-  text: string
-  speaker: "user" | "ai"
+export interface Update {
+  terminate_session: boolean
+  coach_state: CoachState
+  coach_message: string
   
 }

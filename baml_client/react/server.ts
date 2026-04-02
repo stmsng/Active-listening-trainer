@@ -24,7 +24,7 @@ import { b } from '../index';
 import type { Check, Checked  } from "../types";
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml";
 
-import type {  CoachCharacteristics,  Grade,  ResponseNote,  Statement } from "../types"
+import type {  CoachCharacteristics,  CoachState,  Grade,  HistoryItem,  ResponseNote,  Update } from "../types"
 
 import type * as types from "../types"
 
@@ -39,13 +39,13 @@ import type * as types from "../types"
  * with the specified parameters.
  *
  * @param { string } scenario - Input parameter.
- * @param { types.Statement[] } history - Input parameter.
+ * @param { types.HistoryItem[] } history - Input parameter.
  *
  * @returns {Promise<types.Grade>} A promise that resolves with the result of the action.
  */
 export const GradeActiveListening = async (
   scenario: string,
-  history: types.Statement[],
+  history: types.HistoryItem[],
 ): Promise<types.Grade> => {
   return b.GradeActiveListening(
     scenario,
@@ -61,21 +61,18 @@ export const GradeActiveListening = async (
  *
  * @param { types.CoachCharacteristics } coach_characteristics - Input parameter.
  * @param { string } scenario - Input parameter.
- * @param { boolean } pretending - Input parameter.
- * @param { types.Statement[] } history - Input parameter.
+ * @param { types.HistoryItem[] } history - Input parameter.
  *
- * @returns {Promise<string>} A promise that resolves with the result of the action.
+ * @returns {Promise<types.Update>} A promise that resolves with the result of the action.
  */
 export const Talk = async (
   coach_characteristics: types.CoachCharacteristics,
   scenario: string,
-  pretending: boolean,
-  history: types.Statement[],
-): Promise<string> => {
+  history: types.HistoryItem[],
+): Promise<types.Update> => {
   return b.Talk(
     coach_characteristics,
     scenario,
-    pretending,
     history,
   );
 };

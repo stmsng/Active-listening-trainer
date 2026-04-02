@@ -21,12 +21,12 @@ $ pnpm add @boundaryml/baml
 import type { Check, Checked  } from "../types";
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml";
 
-import type {  CoachCharacteristics,  Grade,  ResponseNote,  Statement } from "../types"
+import type {  CoachCharacteristics,  CoachState,  Grade,  HistoryItem,  ResponseNote,  Update } from "../types"
 
 import type * as types from "../types"
 import type { partial_types }from "../partial_types";
 
 export type StreamingServerTypes = {
   GradeActiveListening: Grade,
-  Talk: string,
+  Talk: Update,
 }
