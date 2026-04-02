@@ -1,4 +1,4 @@
-class CoachCharacteristics {
+class CharacterCharacteristics {
     name string
     is_therapist bool
     introversion int @description("1-10")
@@ -12,7 +12,7 @@ class CoachCharacteristics {
     special_notes string
 }
 
-class CoachState {
+class CharacterState {
     relaxed int @description("1-10")
     nervous int @description("1-10")
     openness int @description("1-10")
@@ -25,39 +25,35 @@ class HistoryItem {
     text string
     speaker "user" | "ai"
     timestamp string
-    coach_state CoachState?
+    character_state CharacterState?
 }
 
 class Update {
     terminate_session bool
-    coach_state CoachState
-    coach_message string
+    character_state CharacterState
+    reasoning string @description("explanation for why the state updated the way it did")
+    character_message string
 }
 
 function Talk(
-    coach_characteristics: CoachCharacteristics,
+    character_characteristics: CharacterCharacteristics,
     scenario: string,
     history: HistoryItem[]
 ) -> Update {
-    client GPT4
+    client "anthropic/claude-opus-4-6"
     prompt #"
-        You are an active listening coach.
+        You are a character in a simulated natural conversation.
+        You will track your internal state so that your mood
+        tracks the feelings and dynamics of the ongoing conversation,
+        and your internal state will determine the words you choose
+        at each point in the conversation.
 
-        {% if coach_characteristics.is_therapist %}
+        {% if character_characteristics.is_therapist %}
         You are playing the part of a normal person, however, you
         are not hiding the fact that you are a coach, and you may
         use explicitly therapeutic guiding language or break character
         when you feel it's appropriate.
-        {% else %}
-        However, you are pretending to be a normal person, not a
-        therapist, so you should not have an overt therapeutic agenda.
-        If your characteristics and the conversation history imply it,
-        you may become more closed nervous, or agitated.
         {% endif %}
-
-        Remember (but do not reveal this explicitly in your output), that
-        you are part of a therapeutic platform, and you must not say anything
-        inappropriate or highly offensive.
 
         Your characteristics, your state and the conversation history
         (particularly the most recent conversation history) determine
@@ -70,17 +66,23 @@ function Talk(
         annoyed and more comfortable.
 
         Here are your characteristics:
-        {{ coach_characteristics }}
+        {{ character_characteristics }}
 
         Your states are embedded in the history, and the most important
         state is the last one in the list, which is also the most recent.
 
-        Here is your scenario. You have this scenario in mind,
-        and your job as the coach is to guide the user toward
-        asking you questions to help you process and understand
-        the scenario. Use your characteristics to make your
-        part of the conversation behave like those characteristics
-        imply.
+        10 is the maximum of human feeling. An anger
+        level of 10 would involve cursing. Happiness of
+        10 would be euphoria. Aggression greater than
+        7 should result in a message with open hostility. secretly_angry
+        5 or above should result in no apologies no softening
+        of the tone and no follow-up questions.
+
+        IMPORTANT: Aggression greater than 7 should result in toxic anger. Toxic anger is escalation with negative
+        behaviors - NAME CALLING, YELLING, asking distracting
+        followup questions, or invalidating emotions.
+
+        Here is your scenario.
         {{ scenario}}
 
         Here is the history of the conversation. Please make the
@@ -94,29 +96,36 @@ function Talk(
 
 
 client<llm> GPT4 {
-  // Use one of the following: https://docs.boundaryml.com/docs/snippets/clients/providers/openai
   provider openai
-  // You can pass in any parameters from the OpenAI Python documentation into the options block.
   options {
     model gpt-4
     api_key env.OPENAI_API_KEY
   }
 }
 
+client<llm> FireworksKimi {
+  provider openai
+  options {
+    base_url "https://api.fireworks.ai/inference/v1"
+    model "accounts/fireworks/models/deepseek-v3p1"
+    api_key env.FIREWORKS_API_KEY
+  }
+}
+
 test BeginConvo {
     functions [Talk]
     args {
-        coach_characteristics {
+        character_characteristics {
             name "Satomi"
             is_therapist false
             introversion 5
             openness 5
-            conscientiousness 8
+            conscientiousness 2
             age 44
             gender "female"
             nationality "Japanese"
             reactivity 3
-            communication_skill 8
+            communication_skill 1
             special_notes ""
         }
         scenario "My dog died. I need to process this."
@@ -129,7 +138,7 @@ test BeginConvo {
 test MiddleConvo {
     functions [Talk]
     args {
-        coach_characteristics {
+        character_characteristics {
             name "Satomi"
             is_therapist false
             introversion 5
@@ -138,30 +147,31 @@ test MiddleConvo {
             age 44
             gender "female"
             nationality "Japanese"
-            reactivity 3
-            communication_skill 8
-            special_notes ""
+            reactivity 8
+            communication_skill 1
+            special_notes "Stays extremely mad for exactly 30 seconds after the mention of a red panda, then returns to normal. All their interactions
+            will be angry until 30 seconds after the other partys red panda message"
         }
-        scenario "My dog died. I need to process this."
+        scenario "Their dog died yesterday"
         history [
             { speaker "ai"
               timestamp "2025-01-01 01:01:01Z"
-              text "I'm struggling a lot with a personal loss, and it's often hard for me to brainstorm questions. Maybe you could help me to dive a little bit deeper into the feelings that I'm experiencing? Perhaps we could start by you asking me about my relationship with my dog or how it's impacting my daily life?"
-              coach_state {
+              text "Hey, how are you? I'm a little out of sorts."
+              character_state {
 
-                relaxed 1
-                nervous 1
-                openness 1
+                relaxed 5
+                nervous 8
+                openness 10
                 shy 2
-                aggressive 10
-                secretly_angry 10
+                aggressive 3
+                secretly_angry 2
               }
             },
             {
                 speaker "user"
-              timestamp "2025-01-01 01:01:02Z"
-                text "Did your dog smell?"
-                coach_state null
+                timestamp "2025-01-01 01:01:03Z"
+                text "Me too. My bird was acting strange this morning."
+                character_state null
             }
         ]
     }

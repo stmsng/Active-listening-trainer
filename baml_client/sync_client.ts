@@ -22,7 +22,7 @@ import type { BamlRuntime, FunctionResult, BamlCtxManager, Image, Audio, Pdf, Vi
 import { toBamlError, BamlAbortError, ClientRegistry, type HTTPRequest } from "@boundaryml/baml"
 import type { Checked, Check, RecursivePartialNull as MovedRecursivePartialNull } from "./types"
 import type * as types from "./types"
-import type {CoachCharacteristics, CoachState, Grade, HistoryItem, ResponseNote, Update} from "./types"
+import type {CharacterCharacteristics, CharacterState, Grade, HistoryItem, ResponseNote, Update} from "./types"
 import type TypeBuilder from "./type_builder"
 import { HttpRequest, HttpStreamRequest } from "./sync_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
@@ -148,7 +148,7 @@ export class BamlSyncClient {
   }
   
   Talk(
-      coach_characteristics: types.CoachCharacteristics,scenario: string,history: types.HistoryItem[],
+      character_characteristics: types.CharacterCharacteristics,scenario: string,history: types.HistoryItem[],
       __baml_options__?: BamlCallOptions<never>
   ): types.Update {
     try {
@@ -180,7 +180,7 @@ export class BamlSyncClient {
       const __raw__ = this.runtime.callFunctionSync(
         "Talk",
         {
-          "coach_characteristics": coach_characteristics,"scenario": scenario,"history": history
+          "character_characteristics": character_characteristics,"scenario": scenario,"history": history
         },
         this.ctxManager.cloneContext(),
         __options__.tb?.__tb(),

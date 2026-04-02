@@ -435,7 +435,7 @@ export function useGradeActiveListening(
  *
  * **Input Types:**
  *
- * - coach_characteristics: types.CoachCharacteristics
+ * - character_characteristics: types.CharacterCharacteristics
  *
  * - scenario: string
  *

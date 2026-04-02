@@ -24,7 +24,7 @@ import { toBamlError, BamlStream, BamlAbortError, Collector, ClientRegistry } fr
 import type { Checked, Check, RecursivePartialNull as MovedRecursivePartialNull } from "./types"
 import type { partial_types } from "./partial_types"
 import type * as types from "./types"
-import type {CoachCharacteristics, CoachState, Grade, HistoryItem, ResponseNote, Update} from "./types"
+import type {CharacterCharacteristics, CharacterState, Grade, HistoryItem, ResponseNote, Update} from "./types"
 import type TypeBuilder from "./type_builder"
 import { AsyncHttpRequest, AsyncHttpStreamRequest } from "./async_request"
 import { LlmResponseParser, LlmStreamParser } from "./parser"
@@ -154,7 +154,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             }
             
         async Talk(
-        coach_characteristics: types.CoachCharacteristics,scenario: string,history: types.HistoryItem[],
+        character_characteristics: types.CharacterCharacteristics,scenario: string,history: types.HistoryItem[],
         __baml_options__?: BamlCallOptions<never>
         ): Promise<types.Update> {
           try {
@@ -168,7 +168,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
           // Check if onTick is provided - route through streaming if so
           if (__options__.onTick) {
           const __stream__ = this.stream.Talk(
-          coach_characteristics,scenario,history,
+          character_characteristics,scenario,history,
           __baml_options__
           );
 
@@ -192,7 +192,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
             const __raw__ = await this.runtime.callFunction(
             "Talk",
             {
-            "coach_characteristics": coach_characteristics,"scenario": scenario,"history": history
+            "character_characteristics": character_characteristics,"scenario": scenario,"history": history
             },
             this.ctxManager.cloneContext(),
             __options__.tb?.__tb(),
@@ -298,7 +298,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                   }
                   
             Talk(
-            coach_characteristics: types.CoachCharacteristics,scenario: string,history: types.HistoryItem[],
+            character_characteristics: types.CharacterCharacteristics,scenario: string,history: types.HistoryItem[],
             __baml_options__?: BamlCallOptions<never>
             ): BamlStream<partial_types.Update, types.Update>
               {
@@ -347,7 +347,7 @@ export type RecursivePartialNull<T> = MovedRecursivePartialNull<T>
                 const __raw__ = this.runtime.streamFunction(
                 "Talk",
                 {
-                "coach_characteristics": coach_characteristics,"scenario": scenario,"history": history
+                "character_characteristics": character_characteristics,"scenario": scenario,"history": history
                 },
                 undefined,
                 this.ctxManager.cloneContext(),

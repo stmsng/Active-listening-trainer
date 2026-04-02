@@ -24,7 +24,7 @@ import { b } from '../index';
 import type { Check, Checked  } from "../types";
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml";
 
-import type {  CoachCharacteristics,  CoachState,  Grade,  HistoryItem,  ResponseNote,  Update } from "../types"
+import type {  CharacterCharacteristics,  CharacterState,  Grade,  HistoryItem,  ResponseNote,  Update } from "../types"
 
 import type * as types from "../types"
 
@@ -59,19 +59,19 @@ export const GradeActiveListening = async (
  * This server action calls the underlying BAML function "Talk"
  * with the specified parameters.
  *
- * @param { types.CoachCharacteristics } coach_characteristics - Input parameter.
+ * @param { types.CharacterCharacteristics } character_characteristics - Input parameter.
  * @param { string } scenario - Input parameter.
  * @param { types.HistoryItem[] } history - Input parameter.
  *
  * @returns {Promise<types.Update>} A promise that resolves with the result of the action.
  */
 export const Talk = async (
-  coach_characteristics: types.CoachCharacteristics,
+  character_characteristics: types.CharacterCharacteristics,
   scenario: string,
   history: types.HistoryItem[],
 ): Promise<types.Update> => {
   return b.Talk(
-    coach_characteristics,
+    character_characteristics,
     scenario,
     history,
   );

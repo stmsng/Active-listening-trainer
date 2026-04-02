@@ -27,24 +27,24 @@ export { FieldType, EnumBuilder, ClassBuilder }
 export default class TypeBuilder {
     private tb: _TypeBuilder;
     
-    CoachCharacteristics: ClassViewer<'CoachCharacteristics', "name" | "is_therapist" | "introversion" | "communication_skill" | "openness" | "conscientiousness" | "age" | "gender" | "nationality" | "reactivity" | "special_notes">;
+    CharacterCharacteristics: ClassViewer<'CharacterCharacteristics', "name" | "is_therapist" | "introversion" | "communication_skill" | "openness" | "conscientiousness" | "age" | "gender" | "nationality" | "reactivity" | "special_notes">;
     
-    CoachState: ClassViewer<'CoachState', "relaxed" | "nervous" | "openness" | "shy" | "aggressive" | "secretly_angry">;
+    CharacterState: ClassViewer<'CharacterState', "relaxed" | "nervous" | "openness" | "shy" | "aggressive" | "secretly_angry">;
     
     Grade: ClassViewer<'Grade', "letter_grade" | "effective_responses" | "areas_for_improvement" | "feedback">;
     
-    HistoryItem: ClassViewer<'HistoryItem', "text" | "speaker" | "timestamp" | "coach_state">;
+    HistoryItem: ClassViewer<'HistoryItem', "text" | "speaker" | "timestamp" | "character_state">;
     
     ResponseNote: ClassViewer<'ResponseNote', "original_content" | "grader_note">;
     
-    Update: ClassViewer<'Update', "terminate_session" | "coach_state" | "coach_message">;
+    Update: ClassViewer<'Update', "terminate_session" | "character_state" | "reasoning" | "character_message">;
     
     
 
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "CoachCharacteristics","CoachState","Grade","HistoryItem","ResponseNote","Update",
+            "CharacterCharacteristics","CharacterState","Grade","HistoryItem","ResponseNote","Update",
           ]),
           enums: new Set([
             
@@ -52,11 +52,11 @@ export default class TypeBuilder {
           runtime: DO_NOT_USE_DIRECTLY_UNLESS_YOU_KNOW_WHAT_YOURE_DOING_RUNTIME
         });
         
-        this.CoachCharacteristics = this.tb.classViewer("CoachCharacteristics", [
+        this.CharacterCharacteristics = this.tb.classViewer("CharacterCharacteristics", [
           "name","is_therapist","introversion","communication_skill","openness","conscientiousness","age","gender","nationality","reactivity","special_notes",
         ]);
         
-        this.CoachState = this.tb.classViewer("CoachState", [
+        this.CharacterState = this.tb.classViewer("CharacterState", [
           "relaxed","nervous","openness","shy","aggressive","secretly_angry",
         ]);
         
@@ -65,7 +65,7 @@ export default class TypeBuilder {
         ]);
         
         this.HistoryItem = this.tb.classViewer("HistoryItem", [
-          "text","speaker","timestamp","coach_state",
+          "text","speaker","timestamp","character_state",
         ]);
         
         this.ResponseNote = this.tb.classViewer("ResponseNote", [
@@ -73,7 +73,7 @@ export default class TypeBuilder {
         ]);
         
         this.Update = this.tb.classViewer("Update", [
-          "terminate_session","coach_state","coach_message",
+          "terminate_session","character_state","reasoning","character_message",
         ]);
         
         

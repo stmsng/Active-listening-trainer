@@ -20,7 +20,7 @@ $ pnpm add @boundaryml/baml
 
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
-import type {  CoachCharacteristics,  CoachState,  Grade,  HistoryItem,  ResponseNote,  Update } from "./types"
+import type {  CharacterCharacteristics,  CharacterState,  Grade,  HistoryItem,  ResponseNote,  Update } from "./types"
 import type * as types from "./types"
 
 /******************************************************************************
@@ -36,7 +36,7 @@ export interface StreamState<T> {
 }
 
 export namespace partial_types {
-    export interface CoachCharacteristics {
+    export interface CharacterCharacteristics {
       name?: string | null
       is_therapist?: boolean | null
       introversion?: number | null
@@ -49,7 +49,7 @@ export namespace partial_types {
       reactivity?: number | null
       special_notes?: string | null
     }
-    export interface CoachState {
+    export interface CharacterState {
       relaxed?: number | null
       nervous?: number | null
       openness?: number | null
@@ -67,7 +67,7 @@ export namespace partial_types {
       text?: string | null
       speaker?: "user" | "ai" | null
       timestamp?: string | null
-      coach_state?: CoachState | null
+      character_state?: CharacterState | null
     }
     export interface ResponseNote {
       original_content?: string | null
@@ -75,7 +75,8 @@ export namespace partial_types {
     }
     export interface Update {
       terminate_session?: boolean | null
-      coach_state?: CoachState | null
-      coach_message?: string | null
+      character_state?: CharacterState | null
+      reasoning?: string | null
+      character_message?: string | null
     }
 }

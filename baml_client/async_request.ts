@@ -23,7 +23,7 @@ import type { BamlRuntime, BamlCtxManager, Image, Audio, Pdf, Video, FunctionLog
 import { toBamlError, HTTPRequest, ClientRegistry } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
 import type * as types from "./types"
-import type {CoachCharacteristics, CoachState, Grade, HistoryItem, ResponseNote, Update} from "./types"
+import type {CharacterCharacteristics, CharacterState, Grade, HistoryItem, ResponseNote, Update} from "./types"
 import type TypeBuilder from "./type_builder"
 import type * as events from "./events"
 
@@ -76,7 +76,7 @@ env?: Record<string, string | undefined>
       }
       
   async Talk(
-  coach_characteristics: types.CoachCharacteristics,scenario: string,history: types.HistoryItem[],
+  character_characteristics: types.CharacterCharacteristics,scenario: string,history: types.HistoryItem[],
   __baml_options__?: BamlCallOptions<never>
   ): Promise<HTTPRequest> {
     try {
@@ -95,7 +95,7 @@ env?: Record<string, string | undefined>
       return await this.runtime.buildRequest(
       "Talk",
       {
-      "coach_characteristics": coach_characteristics,"scenario": scenario,"history": history
+      "character_characteristics": character_characteristics,"scenario": scenario,"history": history
       },
       this.ctxManager.cloneContext(),
       __baml_options__?.tb?.__tb(),
@@ -148,7 +148,7 @@ env?: Record<string, string | undefined>
           }
           
       async Talk(
-      coach_characteristics: types.CoachCharacteristics,scenario: string,history: types.HistoryItem[],
+      character_characteristics: types.CharacterCharacteristics,scenario: string,history: types.HistoryItem[],
       __baml_options__?: BamlCallOptions<never>
       ): Promise<HTTPRequest> {
         try {
@@ -167,7 +167,7 @@ env?: Record<string, string | undefined>
           return await this.runtime.buildRequest(
           "Talk",
           {
-          "coach_characteristics": coach_characteristics,"scenario": scenario,"history": history
+          "character_characteristics": character_characteristics,"scenario": scenario,"history": history
           },
           this.ctxManager.cloneContext(),
           __baml_options__?.tb?.__tb(),

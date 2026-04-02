@@ -47,7 +47,7 @@ export function all_succeeded<CheckName extends string>(checks: Record<CheckName
 export function get_checks<CheckName extends string>(checks: Record<CheckName, Check>): Check[] {
     return Object.values(checks)
 }
-export interface CoachCharacteristics {
+export interface CharacterCharacteristics {
   name: string
   is_therapist: boolean
   introversion: number
@@ -62,7 +62,7 @@ export interface CoachCharacteristics {
   
 }
 
-export interface CoachState {
+export interface CharacterState {
   relaxed: number
   nervous: number
   openness: number
@@ -84,7 +84,7 @@ export interface HistoryItem {
   text: string
   speaker: "user" | "ai"
   timestamp: string
-  coach_state?: CoachState | null
+  character_state?: CharacterState | null
   
 }
 
@@ -96,7 +96,8 @@ export interface ResponseNote {
 
 export interface Update {
   terminate_session: boolean
-  coach_state: CoachState
-  coach_message: string
+  character_state: CharacterState
+  reasoning: string
+  character_message: string
   
 }
