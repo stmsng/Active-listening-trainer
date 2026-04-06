@@ -4,6 +4,98 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Brain, Users, Star, Zap, Heart } from "lucide-react";
 
+const characters = [
+  {
+    name: "Satomi",
+    age: 44,
+    nationality: "Japanese",
+    gender: "female" as const,
+    is_therapist: false,
+    badge: { label: "Reserved", color: "bg-secondary" },
+    avatar: "/professional-woman-therapist-headshot-warm-smile.png",
+    description:
+      "Low communication skill and moderate introversion. Practice patience and drawing out someone who struggles to express themselves.",
+    stats: [
+      { label: "Introversion", value: 5 },
+      { label: "Openness", value: 5 },
+    ],
+  },
+  {
+    name: "Marcus",
+    age: 38,
+    nationality: "American",
+    gender: "male" as const,
+    is_therapist: false,
+    badge: { label: "Reactive", color: "bg-primary" },
+    avatar: "/young-professional-man-business-casual-confident.png",
+    description:
+      "High reactivity and conscientiousness. Navigating workplace stress with strong opinions and quick emotional responses.",
+    stats: [
+      { label: "Reactivity", value: 8 },
+      { label: "Conscientiousness", value: 9 },
+    ],
+  },
+  {
+    name: "Elena",
+    age: 72,
+    nationality: "Mexican",
+    gender: "female" as const,
+    is_therapist: false,
+    badge: { label: "Wise", color: "bg-secondary" },
+    avatar: "/elderly-grandmother-wise-kind-eyes-gentle-smile.png",
+    description:
+      "High openness and low reactivity. Rich life experience and a willingness to share, but she takes her time.",
+    stats: [
+      { label: "Openness", value: 9 },
+      { label: "Reactivity", value: 2 },
+    ],
+  },
+  {
+    name: "Alex",
+    age: 17,
+    nationality: "British",
+    gender: "nonbinary" as const,
+    is_therapist: false,
+    badge: { label: "Guarded", color: "bg-chart-2" },
+    avatar: "/teenage-student-backpack-casual-clothes-thoughtful.png",
+    description:
+      "High introversion and low communication skill. Dealing with academic pressure and social anxiety - requires gentle, non-pushy listening.",
+    stats: [
+      { label: "Introversion", value: 9 },
+      { label: "Communication", value: 2 },
+    ],
+  },
+  {
+    name: "Dr. Priya",
+    age: 50,
+    nationality: "Indian",
+    gender: "female" as const,
+    is_therapist: true,
+    badge: { label: "Therapist", color: "bg-chart-3" },
+    avatar: "/middle-aged-man-doctor-medical-professional-caring.png",
+    description:
+      "A therapist character who may use coaching language. High communication skill - great for learning from an expert listener.",
+    stats: [
+      { label: "Communication", value: 9 },
+      { label: "Openness", value: 8 },
+    ],
+  },
+  {
+    name: "Kai",
+    age: 28,
+    nationality: "Korean",
+    gender: "male" as const,
+    is_therapist: false,
+    badge: { label: "Volatile", color: "bg-chart-4" },
+    avatar: "/creative-artist-woman-colorful-clothing-expressive.png",
+    description:
+      "High reactivity and low conscientiousness. Creative and emotionally intense - conversations can escalate quickly if not handled with care.",
+    stats: [
+      { label: "Reactivity", value: 9 },
+      { label: "Conscientiousness", value: 2 },
+    ],
+  },
+];
 
 export default function HomePage() {
   return (
@@ -148,260 +240,52 @@ export default function HomePage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* AI Personality Cards */}
-            <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-card/80 backdrop-blur border-2 hover:border-accent/50">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="relative">
-                    <img
-                      src="/professional-woman-therapist-headshot-warm-smile.png"
-                      alt="Sarah - The Therapist"
-                      className="w-20 h-20 rounded-full mx-auto shadow-lg"
-                    />
-                    <Badge className="absolute -top-2 -right-2 bg-accent">
-                      Expert
-                    </Badge>
-                  </div>
-
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold">Sarah</h3>
-                    <p className="text-muted-foreground">The Therapist</p>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground text-center">
-                    Specializes in emotional processing and trauma-informed
-                    conversations. Perfect for practicing deep empathy and
-                    validation techniques.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-accent">4.9</div>
-                      <div className="text-xs text-muted-foreground">
-                        Empathy
-                      </div>
+            {characters.map((character) => (
+              <Card
+                key={character.name}
+                className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-card/80 backdrop-blur border-2 hover:border-accent/50"
+              >
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <img
+                        src={character.avatar}
+                        alt={character.name}
+                        className="w-20 h-20 rounded-full mx-auto shadow-lg"
+                      />
+                      <Badge className={`absolute -top-2 -right-2 ${character.badge.color}`}>
+                        {character.badge.label}
+                      </Badge>
                     </div>
+
                     <div className="text-center">
-                      <div className="text-lg font-bold text-accent">4.8</div>
-                      <div className="text-xs text-muted-foreground">
-                        Patience
-                      </div>
+                      <h3 className="text-xl font-bold">{character.name}</h3>
+                      <p className="text-muted-foreground">
+                        {character.age}y/o &middot; {character.nationality}
+                        {character.is_therapist && " &middot; Therapist"}
+                      </p>
                     </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
 
-            <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-card/80 backdrop-blur border-2 hover:border-accent/50">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="relative">
-                    <img
-                      src="/young-professional-man-business-casual-confident.png"
-                      alt="Marcus - The Executive"
-                      className="w-20 h-20 rounded-full mx-auto shadow-lg"
-                    />
-                    <Badge className="absolute -top-2 -right-2 bg-primary">
-                      Leader
-                    </Badge>
-                  </div>
+                    <p className="text-sm text-muted-foreground text-center">
+                      {character.description}
+                    </p>
 
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold">Marcus</h3>
-                    <p className="text-muted-foreground">The Executive</p>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground text-center">
-                    High-pressure business scenarios and workplace conflicts.
-                    Learn to navigate professional relationships with active
-                    listening.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-accent">4.7</div>
-                      <div className="text-xs text-muted-foreground">
-                        Directness
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-accent">4.6</div>
-                      <div className="text-xs text-muted-foreground">
-                        Challenge
-                      </div>
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                      {character.stats.map((stat) => (
+                        <div key={stat.label} className="text-center">
+                          <div className="text-lg font-bold text-accent">
+                            {stat.value}/10
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {stat.label}
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-card/80 backdrop-blur border-2 hover:border-accent/50">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="relative">
-                    <img
-                      src="/elderly-grandmother-wise-kind-eyes-gentle-smile.png"
-                      alt="Elena - The Grandmother"
-                      className="w-20 h-20 rounded-full mx-auto shadow-lg"
-                    />
-                    <Badge className="absolute -top-2 -right-2 bg-secondary">
-                      Wise
-                    </Badge>
-                  </div>
-
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold">Elena</h3>
-                    <p className="text-muted-foreground">The Grandmother</p>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground text-center">
-                    Stories of life experience, family dynamics, and
-                    intergenerational wisdom. Practice patience and respect in
-                    conversations.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-accent">5.0</div>
-                      <div className="text-xs text-muted-foreground">
-                        Wisdom
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-accent">4.9</div>
-                      <div className="text-xs text-muted-foreground">
-                        Warmth
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-card/80 backdrop-blur border-2 hover:border-accent/50">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="relative">
-                    <img
-                      src="/teenage-student-backpack-casual-clothes-thoughtful.png"
-                      alt="Alex - The Student"
-                      className="w-20 h-20 rounded-full mx-auto shadow-lg"
-                    />
-                    <Badge className="absolute -top-2 -right-2 bg-chart-2">
-                      Growing
-                    </Badge>
-                  </div>
-
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold">Alex</h3>
-                    <p className="text-muted-foreground">The Student</p>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground text-center">
-                    Academic pressures, social challenges, and coming-of-age
-                    struggles. Develop skills for supporting younger
-                    individuals.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-accent">4.5</div>
-                      <div className="text-xs text-muted-foreground">
-                        Energy
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-accent">4.3</div>
-                      <div className="text-xs text-muted-foreground">
-                        Openness
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-card/80 backdrop-blur border-2 hover:border-accent/50">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="relative">
-                    <img
-                      src="/middle-aged-man-doctor-medical-professional-caring.png"
-                      alt="Dr. James - The Physician"
-                      className="w-20 h-20 rounded-full mx-auto shadow-lg"
-                    />
-                    <Badge className="absolute -top-2 -right-2 bg-chart-3">
-                      Healer
-                    </Badge>
-                  </div>
-
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold">Dr. James</h3>
-                    <p className="text-muted-foreground">The Physician</p>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground text-center">
-                    Medical conversations, health concerns, and bedside manner
-                    scenarios. Learn compassionate communication in healthcare
-                    settings.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-accent">4.8</div>
-                      <div className="text-xs text-muted-foreground">
-                        Precision
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-accent">4.7</div>
-                      <div className="text-xs text-muted-foreground">Care</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="group hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 bg-card/80 backdrop-blur border-2 hover:border-accent/50">
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="relative">
-                    <img
-                      src="/creative-artist-woman-colorful-clothing-expressive.png"
-                      alt="Maya - The Artist"
-                      className="w-20 h-20 rounded-full mx-auto shadow-lg"
-                    />
-                    <Badge className="absolute -top-2 -right-2 bg-chart-4">
-                      Creative
-                    </Badge>
-                  </div>
-
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold">Maya</h3>
-                    <p className="text-muted-foreground">The Artist</p>
-                  </div>
-
-                  <p className="text-sm text-muted-foreground text-center">
-                    Creative struggles, artistic expression, and emotional
-                    depth. Practice listening to abstract thoughts and creative
-                    processes.
-                  </p>
-
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-accent">4.9</div>
-                      <div className="text-xs text-muted-foreground">
-                        Creativity
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-accent">4.6</div>
-                      <div className="text-xs text-muted-foreground">Depth</div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            ))}
           </div>
 
           <div className="text-center mt-12">

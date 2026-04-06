@@ -6,39 +6,33 @@ import ChatInterface, { Message } from "@/components/chat-interface";
 import { toast } from "sonner";
 import { useTalk } from "@/baml_client/react/hooks";
 
+import type { CharacterCharacteristics } from "@/baml_client/types";
+
 interface AIPersonality {
   name: string;
   avatar: string;
   scenario: string;
-  characteristics: {
-    name: string;
-    introversion: number;
-    communication_skill: number;
-    openness: number;
-    conscientiousness: number;
-    age: number;
-    gender: "male" | "female" | "other";
-    nationality: string;
-    reactivity: number;
-  };
+  characteristics: CharacterCharacteristics;
 }
 
 // Demo AI personality - you can expand this later
 const DEMO_AI: AIPersonality = {
-  name: "Sarah",
+  name: "Satomi",
   avatar: "/professional-woman-therapist-headshot-warm-smile.png",
   scenario:
-    "I'm struggling with the recent loss of my dog. It's been really hard to process this grief, and I feel like I need someone to just listen and understand what I'm going through.",
+    "My dog died. I need to process this.",
   characteristics: {
-    name: "Sarah",
-    introversion: 6,
-    communication_skill: 7,
-    openness: 8,
-    conscientiousness: 7,
-    age: 35,
+    name: "Satomi",
+    is_therapist: false,
+    introversion: 5,
+    communication_skill: 1,
+    openness: 5,
+    conscientiousness: 2,
+    age: 44,
     gender: "female",
-    nationality: "American",
-    reactivity: 4,
+    nationality: "Japanese",
+    reactivity: 3,
+    special_notes: "",
   },
 };
 
@@ -64,17 +58,17 @@ export default function TrainingSession() {
 
   // Handle AI response when mutation completes
   useEffect(() => {
-    if (talkMutation.streamData && talkMutation.isSuccess && talkMutation.data) {
+    if (talkMutation.isSuccess && talkMutation.finalData) {
       const aiMessage: Message = {
         id: (Date.now() + Math.random()).toString(),
-        text: talkMutation.streamData,
+        text: talkMutation.finalData.character_message,
         speaker: "ai",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
       talkMutation.reset(); // Reset for next call
     }
-  }, [talkMutation.streamData, talkMutation.isSuccess]);
+  }, [talkMutation.isSuccess, talkMutation.finalData]);
 
   // Handle errors
   useEffect(() => {
@@ -97,23 +91,26 @@ export default function TrainingSession() {
     };
     setMessages((prev) => [...prev, userMessage]);
 
-    // Convert messages to BAML format
+    // Convert messages to BAML HistoryItem format
     const bamlHistory = messages.map((msg) => ({
       text: msg.text,
       speaker: msg.speaker === "user" ? ("user" as const) : ("ai" as const),
+      timestamp: msg.timestamp.toISOString(),
+      character_state: null,
     }));
 
     // Add the new user message to history
     bamlHistory.push({
       text: messageText,
       speaker: "user" as const,
+      timestamp: new Date().toISOString(),
+      character_state: null,
     });
 
     // Call BAML function using the hook
     talkMutation.mutate(
       DEMO_AI.characteristics,
       DEMO_AI.scenario,
-      true, // pretending mode
       bamlHistory,
     );
   };
@@ -131,6 +128,8 @@ export default function TrainingSession() {
       const bamlHistory = messages.map((msg) => ({
         text: msg.text,
         speaker: msg.speaker === "user" ? ("user" as const) : ("ai" as const),
+        timestamp: msg.timestamp.toISOString(),
+        character_state: null,
       }));
 
       // Store session data in localStorage for the report page
@@ -157,7 +156,9 @@ export default function TrainingSession() {
         <div>
           <h1>Testing</h1>
           {talkMutation.error && <p>{talkMutation.error.message}</p>}
-          <p>{talkMutation.streamData}</p>
+          {talkMutation.streamData && (
+            <p>{talkMutation.streamData.character_message}</p>
+          )}
         </div>
         <ChatInterface
           aiName={DEMO_AI.name}
