@@ -46,13 +46,11 @@ export default function TrainingSession() {
     // Start the conversation with an initial message from the AI
     if (!sessionStarted) {
       setSessionStarted(true);
-      const initialMessage: Message = {
-        id: "1",
-        text: "Hi there... I'm going through a really difficult time right now and could use someone to talk to. I recently lost my beloved dog, and the grief is overwhelming. I'm not sure how to process these feelings. Would you mind if I shared what I'm experiencing?",
-        speaker: "ai",
-        timestamp: new Date(),
-      };
-      setMessages([initialMessage]);
+      talkMutation.mutate(
+        DEMO_AI.characteristics,
+        DEMO_AI.scenario,
+        [],
+      );
     }
   }, [sessionStarted]);
 

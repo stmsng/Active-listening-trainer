@@ -118,6 +118,7 @@ export default function ReportPage() {
     const bamlHistory = data.messages.map((msg) => ({
       text: msg.text,
       speaker: msg.speaker === "user" ? "user" as const : "ai" as const,
+      timestamp: new Date(msg.timestamp).toISOString(),
     }));
 
     gradeMutation.mutate(
