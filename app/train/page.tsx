@@ -18,7 +18,7 @@ interface AIPersonality {
 // Demo AI personality - you can expand this later
 const DEMO_AI: AIPersonality = {
   name: "Satomi",
-  avatar: "/professional-woman-therapist-headshot-warm-smile.png",
+  avatar: "/placeholder-user.jpg",
   scenario:
     "My dog died. I need to process this.",
   characteristics: {
@@ -151,23 +151,18 @@ export default function TrainingSession() {
   return (
     <div className="min-h-screen bg-background">
       <div className="h-screen flex flex-col">
-        <div>
-          <h1>Testing</h1>
-          {talkMutation.error && <p>{talkMutation.error.message}</p>}
-          {talkMutation.streamData && (
-            <p>{talkMutation.streamData.character_message}</p>
-          )}
-        </div>
         <ChatInterface
           aiName={DEMO_AI.name}
           aiAvatar={DEMO_AI.avatar}
           scenario={DEMO_AI.scenario}
           messages={messages}
-          isLoading={talkMutation.isPending}
+          isLoading={talkMutation.isLoading}
+          streamingText={
+            talkMutation.streamData?.character_message ?? undefined
+          }
           onSendMessage={handleSendMessage}
           onEndSession={handleEndSession}
         />
-        ;
       </div>
     </div>
   );

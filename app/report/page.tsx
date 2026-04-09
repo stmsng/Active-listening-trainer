@@ -180,7 +180,7 @@ export default function ReportPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-3">
               <Avatar className="h-12 w-12">
-                <AvatarImage src="/professional-woman-therapist-headshot-warm-smile.png" alt={sessionData.aiName} />
+                <AvatarImage src="/placeholder-user.jpg" alt={sessionData.aiName} />
                 <AvatarFallback>{sessionData.aiName.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>

@@ -20,6 +20,8 @@ interface ChatInterfaceProps {
   scenario: string;
   messages: Message[];
   isLoading: boolean;
+  /** Partial model output while streaming; shown in-thread until the message is committed. */
+  streamingText?: string;
   onSendMessage: (message: string) => void;
   onEndSession: () => void;
 }
@@ -30,6 +32,7 @@ export default function ChatInterface({
   scenario,
   messages,
   isLoading,
+  streamingText,
   onSendMessage,
   onEndSession,
 }: ChatInterfaceProps) {
@@ -42,7 +45,7 @@ export default function ChatInterface({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, streamingText, isLoading]);
 
   const handleSend = () => {
     if (inputMessage.trim() && !isLoading) {
@@ -128,11 +131,18 @@ export default function ChatInterface({
             </Avatar>
             <Card className="bg-muted">
               <CardContent className="p-3">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                </div>
+                {streamingText ? (
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {streamingText}
+                    <span className="inline-block w-0.5 h-4 ml-0.5 align-middle bg-muted-foreground/80 animate-pulse" aria-hidden />
+                  </p>
+                ) : (
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
