@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import "./globals.css"
 import { PostHogProvider } from "../components/PostHogProvider"
+import { SessionProvider } from "@/components/session-provider"
 
 export const metadata: Metadata = {
   title: "Active Listening Dojo - Master Active Listening Through AI Conversations",
@@ -22,10 +23,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>        
-        <PostHogProvider>
-          <Suspense fallback={null}>{children}</Suspense>
-          <Analytics />
-        </PostHogProvider>
+        <SessionProvider>
+          <PostHogProvider>
+            <Suspense fallback={null}>{children}</Suspense>
+            <Analytics />
+          </PostHogProvider>
+        </SessionProvider>
       </body>
     </html>
   )

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { UserNav } from "@/components/user-nav";
 import {
   MessageCircle,
   Brain,
@@ -130,12 +131,7 @@ export default function HomePage() {
             >
               Partners
             </Link>
-            <Button asChild size="sm" className="rounded-full">
-              <Link href="/train">
-                Open dojo
-                <ArrowRight className="ml-1 h-3.5 w-3.5" />
-              </Link>
-            </Button>
+            <UserNav />
           </nav>
         </div>
       </header>
