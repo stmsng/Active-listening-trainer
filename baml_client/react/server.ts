@@ -24,13 +24,61 @@ import { b } from '../index';
 import type { Check, Checked  } from "../types";
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml";
 
-import type {  CharacterCharacteristics,  CharacterState,  Grade,  HistoryItem,  ResponseNote,  Update } from "../types"
+import type {  CharacterCharacteristics,  CharacterState,  Grade,  HistoryItem,  PerceivedProsody,  ProsodyScores,  ResponseNote,  Update,  VoiceDirections } from "../types"
 
 import type * as types from "../types"
 
 /**
  * Regular BAML server actions that return direct responses.
  */
+
+/**
+ * Executes the "DeriveVoice" BAML action.
+ *
+ * This server action calls the underlying BAML function "DeriveVoice"
+ * with the specified parameters.
+ *
+ * @param { string } character_message - Input parameter.
+ * @param { types.CharacterCharacteristics } character_characteristics - Input parameter.
+ * @param { types.CharacterState } character_state - Input parameter.
+ *
+ * @returns {Promise<types.VoiceDirections>} A promise that resolves with the result of the action.
+ */
+export const DeriveVoice = async (
+  character_message: string,
+  character_characteristics: types.CharacterCharacteristics,
+  character_state: types.CharacterState,
+): Promise<types.VoiceDirections> => {
+  return b.DeriveVoice(
+    character_message,
+    character_characteristics,
+    character_state,
+  );
+};
+
+/**
+ * Executes the "FilterPerception" BAML action.
+ *
+ * This server action calls the underlying BAML function "FilterPerception"
+ * with the specified parameters.
+ *
+ * @param { types.ProsodyScores } raw_prosody - Input parameter.
+ * @param { types.CharacterCharacteristics } character_characteristics - Input parameter.
+ * @param { types.CharacterState } character_state - Input parameter.
+ *
+ * @returns {Promise<types.PerceivedProsody>} A promise that resolves with the result of the action.
+ */
+export const FilterPerception = async (
+  raw_prosody: types.ProsodyScores,
+  character_characteristics: types.CharacterCharacteristics,
+  character_state: types.CharacterState,
+): Promise<types.PerceivedProsody> => {
+  return b.FilterPerception(
+    raw_prosody,
+    character_characteristics,
+    character_state,
+  );
+};
 
 /**
  * Executes the "GradeActiveListening" BAML action.

@@ -20,7 +20,7 @@ $ pnpm add @boundaryml/baml
 
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml"
 import type { Checked, Check } from "./types"
-import type {  CharacterCharacteristics,  CharacterState,  Grade,  HistoryItem,  ResponseNote,  Update } from "./types"
+import type {  CharacterCharacteristics,  CharacterState,  Grade,  HistoryItem,  PerceivedProsody,  ProsodyScores,  ResponseNote,  Update,  VoiceDirections } from "./types"
 import type * as types from "./types"
 
 /******************************************************************************
@@ -68,6 +68,48 @@ export namespace partial_types {
       speaker?: "user" | "ai" | null
       timestamp?: string | null
       character_state?: CharacterState | null
+      user_prosody?: PerceivedProsody | null
+    }
+    export interface PerceivedProsody {
+      scores?: ProsodyScores | null
+      perception_notes?: string | null
+    }
+    export interface ProsodyScores {
+      admiration?: number | null
+      adoration?: number | null
+      amusement?: number | null
+      anger?: number | null
+      anxiety?: number | null
+      awe?: number | null
+      awkwardness?: number | null
+      boredom?: number | null
+      calmness?: number | null
+      concentration?: number | null
+      confusion?: number | null
+      contempt?: number | null
+      contentment?: number | null
+      determination?: number | null
+      disappointment?: number | null
+      disgust?: number | null
+      distress?: number | null
+      doubt?: number | null
+      embarrassment?: number | null
+      excitement?: number | null
+      fear?: number | null
+      guilt?: number | null
+      interest?: number | null
+      joy?: number | null
+      love?: number | null
+      nostalgia?: number | null
+      pain?: number | null
+      pride?: number | null
+      sadness?: number | null
+      satisfaction?: number | null
+      shame?: number | null
+      surprise_negative?: number | null
+      surprise_positive?: number | null
+      sympathy?: number | null
+      tiredness?: number | null
     }
     export interface ResponseNote {
       original_content?: string | null
@@ -78,5 +120,9 @@ export namespace partial_types {
       character_state?: CharacterState | null
       reasoning?: string | null
       character_message?: string | null
+    }
+    export interface VoiceDirections {
+      description?: string | null
+      speed?: number | null
     }
 }

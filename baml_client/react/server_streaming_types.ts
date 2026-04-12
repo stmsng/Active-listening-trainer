@@ -21,12 +21,14 @@ $ pnpm add @boundaryml/baml
 import type { Check, Checked  } from "../types";
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml";
 
-import type {  CharacterCharacteristics,  CharacterState,  Grade,  HistoryItem,  ResponseNote,  Update } from "../types"
+import type {  CharacterCharacteristics,  CharacterState,  Grade,  HistoryItem,  PerceivedProsody,  ProsodyScores,  ResponseNote,  Update,  VoiceDirections } from "../types"
 
 import type * as types from "../types"
 import type { partial_types }from "../partial_types";
 
 export type StreamingServerTypes = {
+  DeriveVoice: VoiceDirections,
+  FilterPerception: PerceivedProsody,
   GradeActiveListening: Grade,
   Talk: Update,
 }

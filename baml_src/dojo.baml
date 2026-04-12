@@ -21,11 +21,60 @@ class CharacterState {
     secretly_angry int @description("1-10")
 }
 
+class ProsodyScores {
+    admiration float
+    adoration float
+    amusement float
+    anger float
+    anxiety float
+    awe float
+    awkwardness float
+    boredom float
+    calmness float
+    concentration float
+    confusion float
+    contempt float
+    contentment float
+    determination float
+    disappointment float
+    disgust float
+    distress float
+    doubt float
+    embarrassment float
+    excitement float
+    fear float
+    guilt float
+    interest float
+    joy float
+    love float
+    nostalgia float
+    pain float
+    pride float
+    sadness float
+    satisfaction float
+    shame float
+    surprise_negative float
+    surprise_positive float
+    sympathy float
+    tiredness float
+}
+
+class PerceivedProsody {
+    scores ProsodyScores
+    perception_notes string @description("Brief note on how the character perceived the speaker's tone")
+}
+
+class VoiceDirections {
+    description string @description("Acting instructions for TTS, max 100 chars. e.g. 'softly with sadness, trailing off'")
+    speed float @description("Speech speed 0.5-2.0, where 1.0 is normal")
+}
+
 class HistoryItem {
     text string
     speaker "user" | "ai"
     timestamp string
     character_state CharacterState?
+    user_prosody PerceivedProsody? @description("Perceived vocal emotion of the user, only present on user messages in voice mode")
 }
 
 class Update {
@@ -89,11 +138,99 @@ function Talk(
         next statement appropriate to the interaction.
         {{ history}}
 
+        {% if history | length > 0 %}
+        {% set last = history[-1] %}
+        {% if last.user_prosody %}
+        VOICE MODE: The user's voice carried these perceived emotional
+        qualities:
+        {{ last.user_prosody.scores }}
+        Perception: {{ last.user_prosody.perception_notes }}
+        React to how they SOUND, not just what they SAY. Their tone
+        of voice should influence your emotional state update.
+        {% endif %}
+        {% endif %}
+
         {{ ctx.output_format }}
 
     "#
 }
 
+
+function FilterPerception(
+    raw_prosody: ProsodyScores,
+    character_characteristics: CharacterCharacteristics,
+    character_state: CharacterState
+) -> PerceivedProsody {
+    client "anthropic/claude-opus-4-6"
+    prompt #"
+        You are simulating how a character perceives another person's
+        vocal emotional tone. The raw prosody scores below are the
+        ACTUAL emotional signals detected in the speaker's voice.
+        Filter these through the character's personality and current
+        emotional state to produce PERCEIVED scores — what the
+        character THINKS the speaker is feeling.
+
+        Rules:
+        - High reactivity (7+): amplify negative emotions (anger,
+          contempt, disgust) by 1.5-2x
+        - Secretly angry (5+): perceive more hostility and condescension
+        - High nervousness (7+): perceive more judgment and disappointment
+        - Low openness (<4): less attuned to positive emotions
+          (sympathy, love, joy)
+        - High introversion (7+): perceive excitement and amusement
+          as overwhelming or intrusive
+        - All scores must stay in the 0.0-1.0 range
+
+        Character characteristics:
+        {{ character_characteristics }}
+
+        Character's current emotional state:
+        {{ character_state }}
+
+        Raw prosody scores from the speaker's voice:
+        {{ raw_prosody }}
+
+        Return the perceived scores and a brief note about any
+        perceptual distortion applied.
+
+        {{ ctx.output_format }}
+    "#
+}
+
+function DeriveVoice(
+    character_message: string,
+    character_characteristics: CharacterCharacteristics,
+    character_state: CharacterState
+) -> VoiceDirections {
+    client "anthropic/claude-opus-4-6"
+    prompt #"
+        Generate voice acting instructions for a text-to-speech system.
+        Given the character's message, personality, and emotional state,
+        produce a short acting direction and a speech speed.
+
+        Guidelines:
+        - High aggressive (7+): louder, faster, clipped words
+        - High nervous (7+): slight tremor, faster, higher pitch
+        - High shy (7+): quiet, slower, trailing off
+        - High relaxed (7+): warm, even pace, gentle
+        - High secretly_angry (5+): controlled but tense, measured
+        - Introversion affects volume (higher = quieter)
+        - Low communication_skill: more hesitation, pauses
+        - The description MUST be under 100 characters
+        - Speed range: 0.5 (slow) to 2.0 (fast), 1.0 is normal
+
+        Character:
+        {{ character_characteristics }}
+
+        Current state:
+        {{ character_state }}
+
+        Message to speak:
+        {{ character_message }}
+
+        {{ ctx.output_format }}
+    "#
+}
 
 client<llm> GPT4 {
   provider openai

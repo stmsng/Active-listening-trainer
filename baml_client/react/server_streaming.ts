@@ -24,13 +24,63 @@ import { b } from '../index';
 import type { Check, Checked  } from "../types";
 import type { Image, Audio, Pdf, Video } from "@boundaryml/baml";
 
-import type {  CharacterCharacteristics,  CharacterState,  Grade,  HistoryItem,  ResponseNote,  Update } from "../types"
+import type {  CharacterCharacteristics,  CharacterState,  Grade,  HistoryItem,  PerceivedProsody,  ProsodyScores,  ResponseNote,  Update,  VoiceDirections } from "../types"
 
 import type * as types from "../types"
 
 /**
  * Streaming BAML server actions that return ReadableStreams.
  */
+
+/**
+ * Executes the streaming variant of the "DeriveVoice" BAML action.
+ *
+ * This action initiates a streaming response by calling the corresponding
+ * BAML stream function. The returned stream yields incremental updates.
+ *
+ * @param { string } character_message - Input parameter.
+ * @param { types.CharacterCharacteristics } character_characteristics - Input parameter.
+ * @param { types.CharacterState } character_state - Input parameter.
+ *
+ * @returns {ReadableStream<Uint8Array>} A stream that yields incremental updates from the action.
+ */
+export const DeriveVoice = async (
+  character_message: string,
+  character_characteristics: types.CharacterCharacteristics,
+  character_state: types.CharacterState,
+): Promise<ReadableStream<Uint8Array>> => {
+  const __stream__ = b.stream.DeriveVoice(
+    character_message,
+    character_characteristics,
+    character_state,
+  );
+  return Promise.resolve(__stream__.toStreamable());
+};
+
+/**
+ * Executes the streaming variant of the "FilterPerception" BAML action.
+ *
+ * This action initiates a streaming response by calling the corresponding
+ * BAML stream function. The returned stream yields incremental updates.
+ *
+ * @param { types.ProsodyScores } raw_prosody - Input parameter.
+ * @param { types.CharacterCharacteristics } character_characteristics - Input parameter.
+ * @param { types.CharacterState } character_state - Input parameter.
+ *
+ * @returns {ReadableStream<Uint8Array>} A stream that yields incremental updates from the action.
+ */
+export const FilterPerception = async (
+  raw_prosody: types.ProsodyScores,
+  character_characteristics: types.CharacterCharacteristics,
+  character_state: types.CharacterState,
+): Promise<ReadableStream<Uint8Array>> => {
+  const __stream__ = b.stream.FilterPerception(
+    raw_prosody,
+    character_characteristics,
+    character_state,
+  );
+  return Promise.resolve(__stream__.toStreamable());
+};
 
 /**
  * Executes the streaming variant of the "GradeActiveListening" BAML action.

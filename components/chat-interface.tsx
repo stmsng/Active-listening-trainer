@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
-import { Send, User } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Send, User, Mic, MicOff, Square, Loader2 } from "lucide-react";
+import type { VoiceSessionState } from "@/types/voice";
 
 export interface Message {
   id: string;
@@ -24,6 +27,15 @@ interface ChatInterfaceProps {
   streamingText?: string;
   onSendMessage: (message: string) => void;
   onEndSession: () => void;
+  // Voice mode
+  isVoiceMode?: boolean;
+  isVoiceSupported?: boolean;
+  voiceState?: VoiceSessionState;
+  liveTranscript?: string;
+  onToggleVoiceMode?: () => void;
+  onStartListening?: () => void;
+  onStopListening?: () => void;
+  onStopPlayback?: () => void;
 }
 
 export default function ChatInterface({
@@ -35,6 +47,14 @@ export default function ChatInterface({
   streamingText,
   onSendMessage,
   onEndSession,
+  isVoiceMode = false,
+  isVoiceSupported = false,
+  voiceState = "idle",
+  liveTranscript = "",
+  onToggleVoiceMode,
+  onStartListening,
+  onStopListening,
+  onStopPlayback,
 }: ChatInterfaceProps) {
   const [inputMessage, setInputMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -75,6 +95,19 @@ export default function ChatInterface({
             <p className="text-muted-foreground">AI Conversation Partner</p>
           </div>
         </div>
+        {isVoiceSupported && onToggleVoiceMode && (
+          <div className="flex items-center gap-2 mb-4">
+            <Switch
+              id="voice-mode"
+              checked={isVoiceMode}
+              onCheckedChange={onToggleVoiceMode}
+            />
+            <Label htmlFor="voice-mode" className="flex items-center gap-1.5 text-sm cursor-pointer">
+              {isVoiceMode ? <Mic className="h-3.5 w-3.5 text-accent" /> : <MicOff className="h-3.5 w-3.5" />}
+              Voice Mode
+            </Label>
+          </div>
+        )}
         <div className="bg-accent/10 p-4 rounded-lg">
           <h3 className="font-semibold text-accent mb-2">Practice Active Listening</h3>
           <p className="text-sm text-muted-foreground">
@@ -152,34 +185,99 @@ export default function ChatInterface({
 
       {/* Input Area */}
       <div className="border-t bg-background p-6">
-        <div className="flex gap-3">
-          <Textarea
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyDown={handleKeyPress}
-            placeholder="Type your response here... (Press Enter to send)"
-            className="min-h-[60px] resize-none"
-            disabled={isLoading}
-          />
-          <div className="flex flex-col gap-2">
-            <Button 
-              onClick={handleSend} 
-              disabled={!inputMessage.trim() || isLoading}
-              size="sm"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
-            <Button 
-              onClick={onEndSession}
-              variant="outline"
-              size="sm"
-              disabled={isLoading}
-            >
-              End Session
-            </Button>
+        {isVoiceMode ? (
+          <div className="flex flex-col items-center gap-4">
+            {/* Mic Button */}
+            <div className="flex items-center gap-4">
+              {voiceState === "idle" && (
+                <Button
+                  onClick={onStartListening}
+                  size="lg"
+                  className="h-16 w-16 rounded-full"
+                  disabled={isLoading}
+                >
+                  <Mic className="h-6 w-6" />
+                </Button>
+              )}
+              {voiceState === "listening" && (
+                <Button
+                  onClick={onStopListening}
+                  size="lg"
+                  variant="destructive"
+                  className="h-16 w-16 rounded-full animate-pulse"
+                >
+                  <Square className="h-5 w-5" />
+                </Button>
+              )}
+              {(voiceState === "processing" || voiceState === "thinking") && (
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                  <Loader2 className="h-6 w-6 animate-spin text-accent" />
+                </div>
+              )}
+              {voiceState === "speaking" && (
+                <Button
+                  onClick={onStopPlayback}
+                  size="lg"
+                  variant="secondary"
+                  className="h-16 w-16 rounded-full"
+                >
+                  <Square className="h-5 w-5" />
+                </Button>
+              )}
+              <Button
+                onClick={onEndSession}
+                variant="outline"
+                size="sm"
+                disabled={isLoading || voiceState !== "idle"}
+              >
+                End Session
+              </Button>
+            </div>
+            {/* State label */}
+            <p className="text-sm text-muted-foreground">
+              {voiceState === "idle" && "Tap to speak"}
+              {voiceState === "listening" && "Listening... tap to stop"}
+              {voiceState === "processing" && "Analyzing voice..."}
+              {voiceState === "thinking" && "Thinking..."}
+              {voiceState === "speaking" && "Speaking... tap to interrupt"}
+            </p>
+            {/* Live transcript */}
+            {voiceState === "listening" && liveTranscript && (
+              <p className="max-w-md text-center text-sm italic text-muted-foreground">
+                &ldquo;{liveTranscript}&rdquo;
+              </p>
+            )}
           </div>
-        </div>
-        <p className="text-xs text-muted-foreground mt-2">
+        ) : (
+          <div className="flex gap-3">
+            <Textarea
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyDown={handleKeyPress}
+              placeholder="Type your response here... (Press Enter to send)"
+              className="min-h-[60px] resize-none"
+              disabled={isLoading}
+            />
+            <div className="flex flex-col gap-2">
+              <Button
+                onClick={handleSend}
+                disabled={!inputMessage.trim() || isLoading}
+                size="sm"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={onEndSession}
+                variant="outline"
+                size="sm"
+                disabled={isLoading}
+              >
+                End Session
+              </Button>
+            </div>
+          </div>
+        )}
+        <p className="text-xs text-muted-foreground mt-2 text-center">
           Conversation length affects cost. Sessions typically last 10-15 exchanges.
         </p>
       </div>

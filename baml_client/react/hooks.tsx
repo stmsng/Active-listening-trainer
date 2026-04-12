@@ -379,6 +379,114 @@ function useBamlAction<FunctionName extends FunctionNames>(
   } satisfies HookOutput<FunctionName, { stream: typeof props.stream }>
 }
 /**
+ * A specialized hook for the DeriveVoice BAML function that supports both streaming and non‑streaming responses.
+ *
+ * **Input Types:**
+ *
+ * - character_message: string
+ *
+ * - character_characteristics: types.CharacterCharacteristics
+ *
+ * - character_state: types.CharacterState
+ *
+ *
+ * **Return Type:**
+ * - **Non‑streaming:** types.VoiceDirections
+ * - **Streaming Partial:** VoiceDirections
+ * - **Streaming Final:** types.VoiceDirections
+ *
+ * **Usage Patterns:**
+ * 1. **Non‑streaming (Default)**
+ *    - Best for quick responses and simple UI updates.
+ * 2. **Streaming**
+ *    - Ideal for long‑running operations or real‑time feedback.
+ *
+ * **Edge Cases:**
+ * - Ensure robust error handling via `onError`.
+ * - Handle cases where partial data may be incomplete or missing.
+ *
+ * @example
+ * ```tsx
+ * // Basic non‑streaming usage:
+ * const { data, error, isLoading, mutate } = useDeriveVoice({ stream: false});
+ *
+ * // Streaming usage:
+ * const { data, streamData, isLoading, error, mutate } = useDeriveVoice({
+ *   stream: true | undefined,
+ *   onStreamData: (partial) => console.log('Partial update:', partial),
+ *   onFinalData: (final) => console.log('Final result:', final),
+ *   onError: (err) => console.error('Error:', err),
+ * });
+ * ```
+ */
+export function useDeriveVoice(props: HookInput<'DeriveVoice', { stream: false }>): HookOutput<'DeriveVoice', { stream: false }>
+export function useDeriveVoice(props?: HookInput<'DeriveVoice', { stream?: true }>): HookOutput<'DeriveVoice', { stream: true }>
+export function useDeriveVoice(
+  props: HookInput<'DeriveVoice', { stream?: boolean }> = {},
+): HookOutput<'DeriveVoice', { stream: true }> | HookOutput<'DeriveVoice', { stream: false }> {
+  let action: ServerAction = Actions.DeriveVoice;
+  if (isStreamingProps(props)) {
+    action = StreamingActions.DeriveVoice;
+    return useBamlAction(action, props)
+  } else {
+    return useBamlAction(action, props as HookInput<'DeriveVoice', { stream: false }>)
+  }
+}
+/**
+ * A specialized hook for the FilterPerception BAML function that supports both streaming and non‑streaming responses.
+ *
+ * **Input Types:**
+ *
+ * - raw_prosody: types.ProsodyScores
+ *
+ * - character_characteristics: types.CharacterCharacteristics
+ *
+ * - character_state: types.CharacterState
+ *
+ *
+ * **Return Type:**
+ * - **Non‑streaming:** types.PerceivedProsody
+ * - **Streaming Partial:** PerceivedProsody
+ * - **Streaming Final:** types.PerceivedProsody
+ *
+ * **Usage Patterns:**
+ * 1. **Non‑streaming (Default)**
+ *    - Best for quick responses and simple UI updates.
+ * 2. **Streaming**
+ *    - Ideal for long‑running operations or real‑time feedback.
+ *
+ * **Edge Cases:**
+ * - Ensure robust error handling via `onError`.
+ * - Handle cases where partial data may be incomplete or missing.
+ *
+ * @example
+ * ```tsx
+ * // Basic non‑streaming usage:
+ * const { data, error, isLoading, mutate } = useFilterPerception({ stream: false});
+ *
+ * // Streaming usage:
+ * const { data, streamData, isLoading, error, mutate } = useFilterPerception({
+ *   stream: true | undefined,
+ *   onStreamData: (partial) => console.log('Partial update:', partial),
+ *   onFinalData: (final) => console.log('Final result:', final),
+ *   onError: (err) => console.error('Error:', err),
+ * });
+ * ```
+ */
+export function useFilterPerception(props: HookInput<'FilterPerception', { stream: false }>): HookOutput<'FilterPerception', { stream: false }>
+export function useFilterPerception(props?: HookInput<'FilterPerception', { stream?: true }>): HookOutput<'FilterPerception', { stream: true }>
+export function useFilterPerception(
+  props: HookInput<'FilterPerception', { stream?: boolean }> = {},
+): HookOutput<'FilterPerception', { stream: true }> | HookOutput<'FilterPerception', { stream: false }> {
+  let action: ServerAction = Actions.FilterPerception;
+  if (isStreamingProps(props)) {
+    action = StreamingActions.FilterPerception;
+    return useBamlAction(action, props)
+  } else {
+    return useBamlAction(action, props as HookInput<'FilterPerception', { stream: false }>)
+  }
+}
+/**
  * A specialized hook for the GradeActiveListening BAML function that supports both streaming and non‑streaming responses.
  *
  * **Input Types:**

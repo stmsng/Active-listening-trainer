@@ -33,18 +33,24 @@ export default class TypeBuilder {
     
     Grade: ClassViewer<'Grade', "letter_grade" | "effective_responses" | "areas_for_improvement" | "feedback">;
     
-    HistoryItem: ClassViewer<'HistoryItem', "text" | "speaker" | "timestamp" | "character_state">;
+    HistoryItem: ClassViewer<'HistoryItem', "text" | "speaker" | "timestamp" | "character_state" | "user_prosody">;
+    
+    PerceivedProsody: ClassViewer<'PerceivedProsody', "scores" | "perception_notes">;
+    
+    ProsodyScores: ClassViewer<'ProsodyScores', "admiration" | "adoration" | "amusement" | "anger" | "anxiety" | "awe" | "awkwardness" | "boredom" | "calmness" | "concentration" | "confusion" | "contempt" | "contentment" | "determination" | "disappointment" | "disgust" | "distress" | "doubt" | "embarrassment" | "excitement" | "fear" | "guilt" | "interest" | "joy" | "love" | "nostalgia" | "pain" | "pride" | "sadness" | "satisfaction" | "shame" | "surprise_negative" | "surprise_positive" | "sympathy" | "tiredness">;
     
     ResponseNote: ClassViewer<'ResponseNote', "original_content" | "grader_note">;
     
     Update: ClassViewer<'Update', "terminate_session" | "character_state" | "reasoning" | "character_message">;
+    
+    VoiceDirections: ClassViewer<'VoiceDirections', "description" | "speed">;
     
     
 
     constructor() {
         this.tb = new _TypeBuilder({
           classes: new Set([
-            "CharacterCharacteristics","CharacterState","Grade","HistoryItem","ResponseNote","Update",
+            "CharacterCharacteristics","CharacterState","Grade","HistoryItem","PerceivedProsody","ProsodyScores","ResponseNote","Update","VoiceDirections",
           ]),
           enums: new Set([
             
@@ -65,7 +71,15 @@ export default class TypeBuilder {
         ]);
         
         this.HistoryItem = this.tb.classViewer("HistoryItem", [
-          "text","speaker","timestamp","character_state",
+          "text","speaker","timestamp","character_state","user_prosody",
+        ]);
+        
+        this.PerceivedProsody = this.tb.classViewer("PerceivedProsody", [
+          "scores","perception_notes",
+        ]);
+        
+        this.ProsodyScores = this.tb.classViewer("ProsodyScores", [
+          "admiration","adoration","amusement","anger","anxiety","awe","awkwardness","boredom","calmness","concentration","confusion","contempt","contentment","determination","disappointment","disgust","distress","doubt","embarrassment","excitement","fear","guilt","interest","joy","love","nostalgia","pain","pride","sadness","satisfaction","shame","surprise_negative","surprise_positive","sympathy","tiredness",
         ]);
         
         this.ResponseNote = this.tb.classViewer("ResponseNote", [
@@ -74,6 +88,10 @@ export default class TypeBuilder {
         
         this.Update = this.tb.classViewer("Update", [
           "terminate_session","character_state","reasoning","character_message",
+        ]);
+        
+        this.VoiceDirections = this.tb.classViewer("VoiceDirections", [
+          "description","speed",
         ]);
         
         

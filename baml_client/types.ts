@@ -85,6 +85,52 @@ export interface HistoryItem {
   speaker: "user" | "ai"
   timestamp: string
   character_state?: CharacterState | null
+  user_prosody?: PerceivedProsody | null
+  
+}
+
+export interface PerceivedProsody {
+  scores: ProsodyScores
+  perception_notes: string
+  
+}
+
+export interface ProsodyScores {
+  admiration: number
+  adoration: number
+  amusement: number
+  anger: number
+  anxiety: number
+  awe: number
+  awkwardness: number
+  boredom: number
+  calmness: number
+  concentration: number
+  confusion: number
+  contempt: number
+  contentment: number
+  determination: number
+  disappointment: number
+  disgust: number
+  distress: number
+  doubt: number
+  embarrassment: number
+  excitement: number
+  fear: number
+  guilt: number
+  interest: number
+  joy: number
+  love: number
+  nostalgia: number
+  pain: number
+  pride: number
+  sadness: number
+  satisfaction: number
+  shame: number
+  surprise_negative: number
+  surprise_positive: number
+  sympathy: number
+  tiredness: number
   
 }
 
@@ -99,5 +145,11 @@ export interface Update {
   character_state: CharacterState
   reasoning: string
   character_message: string
+  
+}
+
+export interface VoiceDirections {
+  description: string
+  speed: number
   
 }
