@@ -20,6 +20,7 @@ import {
 
 const scenarios = [
   {
+    slug: "rachel",
     name: "Rachel",
     age: 37,
     role: "Harsh start-up",
@@ -35,6 +36,7 @@ const scenarios = [
     ],
   },
   {
+    slug: "ben",
     name: "Ben",
     age: 42,
     role: "Stonewaller",
@@ -50,6 +52,7 @@ const scenarios = [
     ],
   },
   {
+    slug: "priya",
     name: "Priya",
     age: 31,
     role: "Bid-sender",
@@ -65,21 +68,23 @@ const scenarios = [
     ],
   },
   {
+    slug: "dr-fields",
     name: "Dr. Fields",
     age: 55,
-    role: "Soft start-up coach",
+    role: "Soft start-up speaker",
     icon: Sparkles,
     accent: "text-accent",
-    badge: { label: "Coach", color: "bg-accent" },
+    badge: { label: "Therapist", color: "bg-accent" },
     description:
-      "A Gottman-trained clinician modeling soft start-ups, gentle complaints, and the language of needs. Watch how she opens hard conversations without contempt.",
+      "A Gottman-trained therapist opening a hard conversation with you — soft start-up, gentle complaint, named need. Your rep is hearing the longing under language that's already careful, instead of getting lulled by the polish.",
     teaches: [
-      "I-statements that land",
-      "Complaint, not criticism",
-      "Name a positive need",
+      "Listen past the I-statement",
+      "Don't be soothed by careful words",
+      "Reflect the need, not the form",
     ],
   },
   {
+    slug: "jordan",
     name: "Jordan",
     age: 39,
     role: "Dreams within",
@@ -95,6 +100,7 @@ const scenarios = [
     ],
   },
   {
+    slug: "avery",
     name: "Avery",
     age: 28,
     role: "Repair-maker",
@@ -117,24 +123,39 @@ const horsemen = [
     title: "Criticism",
     line: "Attacks character, not behavior.",
     antidote: "Gentle start-up · I-statement + positive need",
+    practice: [
+      { slug: "rachel", name: "Rachel", why: "the criticism itself" },
+      { slug: "dr-fields", name: "Dr. Fields", why: "the soft-startup antidote" },
+    ],
   },
   {
     icon: Bird,
     title: "Contempt",
     line: "Mockery, sarcasm, eye-rolls. The #1 predictor of divorce.",
     antidote: "Build culture of fondness and admiration",
+    practice: [
+      { slug: "rachel", name: "Rachel", why: "contempt under the criticism" },
+      { slug: "priya", name: "Priya", why: "build the fondness bank" },
+    ],
   },
   {
     icon: Bird,
     title: "Defensiveness",
     line: "Counter-attack or innocent-victim stance.",
     antidote: "Take responsibility for even a slice",
+    practice: [
+      { slug: "avery", name: "Avery", why: "accept the repair, take the slice" },
+      { slug: "dr-fields", name: "Dr. Fields", why: "reflect the need, not the form" },
+    ],
   },
   {
     icon: ShieldOff,
     title: "Stonewalling",
     line: "Behind glass. Flooded. Gone.",
     antidote: "Physiological self-soothing · take a real break",
+    practice: [
+      { slug: "ben", name: "Ben", why: "the flooded partner" },
+    ],
   },
 ];
 
@@ -305,23 +326,51 @@ export default function GottmanPage() {
 
                 <div className="grid gap-2">
                   {[
-                    "Create shared meaning",
-                    "Make life dreams come true",
-                    "Manage conflict",
-                    "The positive perspective",
-                    "Turn toward instead of away",
-                    "Share fondness & admiration",
-                    "Build love maps",
-                  ].map((floor, i, arr) => (
-                    <div
+                    {
+                      floor: "Create shared meaning",
+                      practice: { slug: "jordan", name: "Jordan" },
+                    },
+                    {
+                      floor: "Make life dreams come true",
+                      practice: { slug: "jordan", name: "Jordan" },
+                    },
+                    {
+                      floor: "Manage conflict",
+                      practice: { slug: "rachel", name: "Rachel" },
+                    },
+                    {
+                      floor: "The positive perspective",
+                      practice: { slug: "avery", name: "Avery" },
+                    },
+                    {
+                      floor: "Turn toward instead of away",
+                      practice: { slug: "priya", name: "Priya" },
+                    },
+                    {
+                      floor: "Share fondness & admiration",
+                      practice: { slug: "priya", name: "Priya" },
+                    },
+                    {
+                      floor: "Build love maps",
+                      practice: { slug: "dr-fields", name: "Dr. Fields" },
+                    },
+                  ].map(({ floor, practice }, i, arr) => (
+                    <Link
                       key={floor}
-                      className="flex items-center justify-between rounded-xl border border-border/50 bg-background/80 px-4 py-2 text-sm shadow-sm"
+                      href={`#scenario-${practice.slug}`}
+                      className="group flex items-center justify-between gap-3 rounded-xl border border-border/50 bg-background/80 px-4 py-2 text-sm shadow-sm transition-all hover:-translate-y-0.5 hover:border-accent/50 hover:bg-background hover:shadow-md"
                     >
-                      <span className="font-medium">{floor}</span>
-                      <span className="text-xs text-muted-foreground">
-                        Floor {arr.length - i}
+                      <div className="flex items-baseline gap-3">
+                        <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                          Floor {arr.length - i}
+                        </span>
+                        <span className="font-medium">{floor}</span>
+                      </div>
+                      <span className="flex items-center gap-1 text-xs text-accent opacity-80 transition-opacity group-hover:opacity-100">
+                        Practice with {practice.name}
+                        <ArrowRight className="h-3 w-3" />
                       </span>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>
@@ -393,12 +442,12 @@ export default function GottmanPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {horsemen.map(({ icon: Icon, title, line, antidote }) => (
+              {horsemen.map(({ icon: Icon, title, line, antidote, practice }) => (
                 <Card
                   key={title}
-                  className="border-2 border-transparent bg-card/70 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/35 hover:shadow-xl"
+                  className="flex flex-col border-2 border-transparent bg-card/70 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/35 hover:shadow-xl"
                 >
-                  <CardContent className="p-5">
+                  <CardContent className="flex flex-1 flex-col p-5">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-destructive/10">
                       <Icon className="h-5 w-5 text-destructive" />
                     </div>
@@ -411,6 +460,30 @@ export default function GottmanPage() {
                         Antidote
                       </p>
                       <p className="mt-1 text-sm leading-snug">{antidote}</p>
+                    </div>
+                    <div className="mt-4 flex flex-1 flex-col justify-end border-t border-border/60 pt-3">
+                      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        Practice with
+                      </p>
+                      <ul className="mt-2 space-y-1.5">
+                        {practice.map(({ slug, name, why }) => (
+                          <li key={slug}>
+                            <Link
+                              href={`#scenario-${slug}`}
+                              className="group/link flex items-start gap-1.5 text-sm text-foreground transition-colors hover:text-accent"
+                            >
+                              <ArrowRight className="mt-0.5 h-3.5 w-3.5 shrink-0 text-accent" />
+                              <span className="leading-snug">
+                                <span className="font-medium">{name}</span>
+                                <span className="text-muted-foreground">
+                                  {" — "}
+                                  {why}
+                                </span>
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
                   </CardContent>
                 </Card>
@@ -427,15 +500,16 @@ export default function GottmanPage() {
           <div className="mx-auto max-w-7xl">
             <div className="mx-auto mb-14 max-w-3xl text-center">
               <p className="text-sm font-medium uppercase tracking-wider text-accent">
-                Coached scenarios
+                Listening reps
               </p>
               <h2 className="mt-2 text-balance text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-                Six partners.{" "}
+                Six speaking partners.{" "}
                 <span className="text-accent">Six Gottman reps.</span>
               </h2>
               <p className="mt-4 text-pretty text-lg text-muted-foreground">
-                Each scenario targets a specific Sound Relationship House move
-                — from catching small bids to spotting a repair mid-fight.
+                You're always the listener. Each partner trains a different
+                Sound Relationship House move — from catching small bids to
+                spotting a repair mid-fight.
               </p>
             </div>
 
@@ -444,8 +518,9 @@ export default function GottmanPage() {
                 const Icon = s.icon;
                 return (
                   <Card
-                    key={s.name}
-                    className="group border-2 border-transparent bg-card/70 shadow-md backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-accent/35 hover:shadow-xl"
+                    key={s.slug}
+                    id={`scenario-${s.slug}`}
+                    className="group scroll-mt-24 border-2 border-transparent bg-card/70 shadow-md backdrop-blur-sm transition-all duration-300 target:border-accent/60 target:shadow-xl hover:-translate-y-1 hover:border-accent/35 hover:shadow-xl"
                   >
                     <CardContent className="p-6">
                       <div className="flex items-center gap-3">

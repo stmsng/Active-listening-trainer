@@ -54,13 +54,17 @@ const scenarios = [
   {
     name: "Dr. Sato",
     age: 52,
-    attachment: "Ambassadors online",
+    attachment: "PACT-trained speaker",
     icon: Brain,
     accent: "text-accent",
-    badge: { label: "Coach", color: "bg-chart-2" },
+    badge: { label: "Therapist", color: "bg-chart-2" },
     description:
-      "A PACT-trained clinician demonstrating ambassadors-in-the-lead listening. She slows the room, tracks faces and tones, and keeps both nervous systems in view.",
-    teaches: ["Prefrontal pacing", "Cross-track tone + face", "Lower the heat"],
+      "Between her own sessions, she speaks with PACT precision — naming when her primitives spike, when she's reaching for her ambassadors, what she needs from the bubble. Your rep is listening at her pace without skipping past the precision.",
+    teaches: [
+      "Track self-state language",
+      "Hear ambassador vs. primitive shifts",
+      "Don't outrun the precision",
+    ],
   },
   {
     name: "Theo",
@@ -413,15 +417,16 @@ export default function TatkinPage() {
           <div className="mx-auto max-w-7xl">
             <div className="mx-auto mb-14 max-w-3xl text-center">
               <p className="text-sm font-medium uppercase tracking-wider text-accent">
-                Coached scenarios
+                Listening reps
               </p>
               <h2 className="mt-2 text-balance text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-                Six partners.{" "}
+                Six speaking partners.{" "}
                 <span className="text-accent">Six PACT reps.</span>
               </h2>
               <p className="mt-4 text-pretty text-lg text-muted-foreground">
-                Each scenario targets a specific PACT move — from holding eyes-on
-                with an island to refusing the bait from a button-pusher.
+                You're always the listener. Each partner brings a different
+                challenge — from holding eyes-on with an island to refusing the
+                bait from a button-pusher.
               </p>
             </div>
 
