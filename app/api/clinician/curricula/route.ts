@@ -1,23 +1,17 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { curricula } from "@/lib/db/schema";
 import { curriculumSchema } from "@/lib/validations/curriculum";
+import {
+  createCurriculum,
+  listCurriculaByClinician,
+} from "@/lib/db/queries/curricula";
 
 export async function GET() {
   const session = await auth();
   if (session?.user?.role !== "clinician") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-
-  const rows = await db
-    .select()
-    .from(curricula)
-    .where(eq(curricula.clinicianId, session.user.id))
-    .orderBy(curricula.createdAt);
-
-  return NextResponse.json(rows);
+  return NextResponse.json(await listCurriculaByClinician(session.user.id));
 }
 
 export async function POST(req: Request) {
@@ -26,8 +20,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = await req.json();
-  const parsed = curriculumSchema.safeParse(body);
+  const parsed = curriculumSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Invalid input" },
@@ -35,10 +28,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const [row] = await db
-    .insert(curricula)
-    .values({ ...parsed.data, clinicianId: session.user.id })
-    .returning();
-
+  const row = await createCurriculum({
+    clinicianId: session.user.id,
+    input: parsed.data,
+  });
   return NextResponse.json(row, { status: 201 });
 }

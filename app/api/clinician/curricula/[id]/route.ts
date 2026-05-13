@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { curricula, curriculumItems, characters } from "@/lib/db/schema";
 import { curriculumSchema } from "@/lib/validations/curriculum";
+import {
+  deleteCurriculum,
+  findCurriculumByIdAndClinician,
+  updateCurriculum,
+} from "@/lib/db/queries/curricula";
+import { listCurriculumItemsWithCharacter } from "@/lib/db/queries/curriculum-items";
 
 export async function GET(
   _req: Request,
@@ -15,29 +18,12 @@ export async function GET(
   }
 
   const { id } = await params;
-  const [curriculum] = await db
-    .select()
-    .from(curricula)
-    .where(and(eq(curricula.id, id), eq(curricula.clinicianId, session.user.id)))
-    .limit(1);
-
+  const curriculum = await findCurriculumByIdAndClinician(id, session.user.id);
   if (!curriculum) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const items = await db
-    .select({
-      id: curriculumItems.id,
-      characterId: curriculumItems.characterId,
-      characterName: characters.name,
-      scenario: curriculumItems.scenario,
-      sortOrder: curriculumItems.sortOrder,
-    })
-    .from(curriculumItems)
-    .leftJoin(characters, eq(curriculumItems.characterId, characters.id))
-    .where(eq(curriculumItems.curriculumId, id))
-    .orderBy(curriculumItems.sortOrder);
-
+  const items = await listCurriculumItemsWithCharacter(id);
   return NextResponse.json({ ...curriculum, items });
 }
 
@@ -51,8 +37,7 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const body = await req.json();
-  const parsed = curriculumSchema.safeParse(body);
+  const parsed = curriculumSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Invalid input" },
@@ -60,16 +45,14 @@ export async function PUT(
     );
   }
 
-  const [row] = await db
-    .update(curricula)
-    .set({ ...parsed.data, updatedAt: new Date() })
-    .where(and(eq(curricula.id, id), eq(curricula.clinicianId, session.user.id)))
-    .returning();
-
+  const row = await updateCurriculum({
+    id,
+    clinicianId: session.user.id,
+    input: parsed.data,
+  });
   if (!row) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-
   return NextResponse.json(row);
 }
 
@@ -83,9 +66,6 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  await db
-    .delete(curricula)
-    .where(and(eq(curricula.id, id), eq(curricula.clinicianId, session.user.id)));
-
+  await deleteCurriculum(id, session.user.id);
   return NextResponse.json({ ok: true });
 }

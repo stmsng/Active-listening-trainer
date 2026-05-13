@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { clinicianDesignations } from "@/lib/db/schema";
+import { deleteClinicianDesignation } from "@/lib/db/queries/clinician-designations";
 
 export async function DELETE(
   _req: Request,
@@ -14,6 +12,6 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  await db.delete(clinicianDesignations).where(eq(clinicianDesignations.id, id));
+  await deleteClinicianDesignation(id);
   return NextResponse.json({ ok: true });
 }

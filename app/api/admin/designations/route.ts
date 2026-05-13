@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { clinicianDesignations } from "@/lib/db/schema";
 import { z } from "zod";
+import { auth } from "@/lib/auth";
+import {
+  createClinicianDesignation,
+  findClinicianDesignationByEmail,
+  listClinicianDesignations,
+} from "@/lib/db/queries/clinician-designations";
 
 const addSchema = z.object({
   email: z.string().email(),
@@ -14,9 +16,7 @@ export async function GET() {
   if (session?.user?.role !== "admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
-
-  const rows = await db.select().from(clinicianDesignations).orderBy(clinicianDesignations.createdAt);
-  return NextResponse.json(rows);
+  return NextResponse.json(await listClinicianDesignations());
 }
 
 export async function POST(req: Request) {
@@ -25,32 +25,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = await req.json();
-  const parsed = addSchema.safeParse(body);
+  const parsed = addSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
 
   const { email } = parsed.data;
-
-  // Check for duplicate
-  const [existing] = await db
-    .select()
-    .from(clinicianDesignations)
-    .where(eq(clinicianDesignations.email, email))
-    .limit(1);
-
-  if (existing) {
+  if (await findClinicianDesignationByEmail(email)) {
     return NextResponse.json(
       { error: "This email is already designated" },
       { status: 409 }
     );
   }
 
-  const [row] = await db
-    .insert(clinicianDesignations)
-    .values({ email, createdBy: session.user.id })
-    .returning();
-
+  const row = await createClinicianDesignation({
+    email,
+    createdBy: session.user.id,
+  });
   return NextResponse.json(row, { status: 201 });
 }

@@ -3,6 +3,12 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Native NAPI modules must be `require`d at runtime, not bundled.
+  serverExternalPackages: [
+    "@tursodatabase/sync",
+    "@tursodatabase/database-common",
+    "@tursodatabase/sync-common",
+  ],
   eslint: {
     ignoreDuringBuilds: true,
   },

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import type { VoiceSessionState, VoiceSessionConfig, RawProsodyScores } from "@/types/voice";
 import type { ProsodyScores } from "@/baml_client/types";
+import type { RawProsodyScores } from "@/types/voice";
 import {
   createHumeExpressionSocket,
   fetchHumeToken,
@@ -13,106 +13,114 @@ import {
   type HumeExpressionSocket,
   type TTSParams,
 } from "@/lib/hume";
+import { computeWaveform, getAudioDurationMs } from "@/lib/audio-utils";
 
 interface SpeechRecognitionEvent {
   results: SpeechRecognitionResultList;
   resultIndex: number;
 }
 
-interface UseVoiceSessionReturn {
-  state: VoiceSessionState;
-  isVoiceMode: boolean;
-  isSupported: boolean;
-  toggleVoiceMode: () => void;
-  startListening: () => void;
-  stopListening: () => void;
+export interface VoiceMemo {
   transcript: string;
-  stopPlayback: () => void;
+  prosody: ProsodyScores;
+  audioBlob: Blob;
+  audioUrl: string;
+  waveform: number[];
+  durationMs: number;
+}
+
+interface UseVoiceRecorderReturn {
+  isSupported: boolean;
+  isRecording: boolean;
+  isProcessing: boolean;
+  transcript: string;
+  startRecording: () => void;
+  stopRecording: () => void;
+  cancelRecording: () => void;
   error: string | null;
   clearError: () => void;
 }
 
-interface UseVoiceSessionCallbacks {
-  onVoiceInput: (transcript: string, prosody: ProsodyScores) => void;
+interface UseVoiceRecorderCallbacks {
+  onMemo: (memo: VoiceMemo) => void;
 }
 
-export function useVoiceSession(
-  config: VoiceSessionConfig,
-  callbacks: UseVoiceSessionCallbacks
-): UseVoiceSessionReturn {
-  const [state, setState] = useState<VoiceSessionState>("idle");
-  const [isVoiceMode, setIsVoiceMode] = useState(false);
+/**
+ * Push-to-talk voice recorder. Captures audio + speech recognition transcript,
+ * runs the audio through Hume for prosody, computes a waveform, and hands the
+ * complete memo to the parent via onMemo.
+ */
+export function useVoiceRecorder(
+  callbacks: UseVoiceRecorderCallbacks,
+): UseVoiceRecorderReturn {
+  const [isRecording, setIsRecording] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
-
   const [isSupported, setIsSupported] = useState(false);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const recognitionRef = useRef<unknown>(null);
   const humeSocketRef = useRef<HumeExpressionSocket | null>(null);
-  const playbackStopRef = useRef<(() => void) | null>(null);
+  const humeConnectingRef = useRef<Promise<void> | null>(null);
+  const cancelledRef = useRef(false);
+  // Capture transcript in a ref so the stop handler reads the latest value
+  // even though the closure was created at start time.
+  const transcriptRef = useRef("");
 
-  // Check browser support on mount (must be in useEffect for SSR)
   useEffect(() => {
-    const supported = !!(
-      (window as unknown as Record<string, unknown>).SpeechRecognition ||
-      (window as unknown as Record<string, unknown>).webkitSpeechRecognition
-    );
+    // Mic support means "can we capture audio?" — MediaRecorder is universal.
+    // Live transcript via Web Speech API is a Chrome/Edge nicety; Firefox &
+    // Safari fall back to server-side Whisper after the recording stops.
+    const supported =
+      typeof window !== "undefined" &&
+      typeof window.MediaRecorder !== "undefined" &&
+      typeof navigator !== "undefined" &&
+      !!navigator.mediaDevices?.getUserMedia;
     setIsSupported(supported);
   }, []);
 
-  const toggleVoiceMode = useCallback(() => {
-    setIsVoiceMode((v) => !v);
-    setState("idle");
-    setTranscript("");
-    setError(null);
-  }, []);
-
-  // Initialize Hume WS when voice mode activates
   useEffect(() => {
-    if (!isVoiceMode) {
-      humeSocketRef.current?.disconnect();
-      humeSocketRef.current = null;
-      return;
-    }
-
-    let cancelled = false;
-    (async () => {
-      try {
-        const token = await fetchHumeToken();
-        if (cancelled) return;
-        const socket = createHumeExpressionSocket(token);
-        await socket.connect();
-        if (cancelled) {
-          socket.disconnect();
-          return;
-        }
-        humeSocketRef.current = socket;
-      } catch (err) {
-        if (!cancelled) {
-          setError("Failed to connect to Hume. Check API key.");
-          console.error("Hume connection error:", err);
-        }
-      }
-    })();
-
     return () => {
-      cancelled = true;
       humeSocketRef.current?.disconnect();
       humeSocketRef.current = null;
     };
-  }, [isVoiceMode]);
+  }, []);
 
-  const startListening = useCallback(() => {
-    if (state !== "idle") return;
+  const ensureHumeSocket = useCallback(async () => {
+    if (humeSocketRef.current) return;
+    if (!humeConnectingRef.current) {
+      humeConnectingRef.current = (async () => {
+        try {
+          const token = await fetchHumeToken();
+          const socket = createHumeExpressionSocket(token);
+          await socket.connect();
+          humeSocketRef.current = socket;
+        } catch (err) {
+          console.warn("Hume connection failed; prosody will be zero.", err);
+        } finally {
+          humeConnectingRef.current = null;
+        }
+      })();
+    }
+    await humeConnectingRef.current;
+  }, []);
+
+  const startRecording = useCallback(() => {
+    if (isRecording || isProcessing) return;
     setError(null);
     setTranscript("");
-    setState("listening");
+    transcriptRef.current = "";
+    cancelledRef.current = false;
     audioChunksRef.current = [];
+    setIsRecording(true);
 
-    // Start SpeechRecognition
-    const SpeechRecognition = (window as unknown as Record<string, unknown>).SpeechRecognition ||
+    // Kick off Hume connect in the background; first record will wait briefly.
+    ensureHumeSocket();
+
+    const SpeechRecognition =
+      (window as unknown as Record<string, unknown>).SpeechRecognition ||
       (window as unknown as Record<string, unknown>).webkitSpeechRecognition;
 
     if (SpeechRecognition) {
@@ -125,129 +133,227 @@ export function useVoiceSession(
         start: () => void;
         stop: () => void;
       })();
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = true;
       recognition.onresult = (e: SpeechRecognitionEvent) => {
         let text = "";
         for (let i = 0; i < e.results.length; i++) {
           text += e.results[i][0].transcript;
         }
+        transcriptRef.current = text;
         setTranscript(text);
       };
       recognition.onerror = (e: { error: string }) => {
-        if (e.error !== "aborted") {
+        if (e.error !== "aborted" && e.error !== "no-speech") {
           setError(`Speech recognition error: ${e.error}`);
         }
       };
-      recognition.onend = () => {
-        // Recognition ended naturally (silence detected)
-      };
-      recognition.start();
-      recognitionRef.current = recognition;
+      recognition.onend = () => {};
+      try {
+        recognition.start();
+        recognitionRef.current = recognition;
+      } catch (err) {
+        console.warn("SpeechRecognition.start failed", err);
+      }
     }
 
-    // Start MediaRecorder for Hume prosody analysis
     navigator.mediaDevices
       .getUserMedia({ audio: true })
       .then((stream) => {
+        if (cancelledRef.current) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
         const recorder = new MediaRecorder(stream);
         recorder.ondataavailable = (e) => {
           if (e.data.size > 0) {
             audioChunksRef.current.push(e.data);
           }
         };
-        recorder.start(250); // collect chunks every 250ms
+        recorder.start(250);
         mediaRecorderRef.current = recorder;
       })
       .catch((err) => {
         setError("Microphone access denied");
-        setState("idle");
+        setIsRecording(false);
         console.error("Mic error:", err);
       });
-  }, [state]);
+  }, [isRecording, isProcessing, ensureHumeSocket]);
 
-  const stopListening = useCallback(async () => {
-    if (state !== "listening") return;
-    setState("processing");
-
-    // Stop speech recognition
+  const teardownRecorders = useCallback(() => {
     const recognition = recognitionRef.current as { stop: () => void } | null;
-    recognition?.stop();
+    try {
+      recognition?.stop();
+    } catch {}
     recognitionRef.current = null;
 
-    // Stop media recorder
     const recorder = mediaRecorderRef.current;
     if (recorder && recorder.state !== "inactive") {
-      recorder.stop();
-      // Stop all tracks to release mic
+      try {
+        recorder.stop();
+      } catch {}
       recorder.stream.getTracks().forEach((t) => t.stop());
     }
     mediaRecorderRef.current = null;
+  }, []);
 
-    // Wait a tick for final data chunks
-    await new Promise((resolve) => setTimeout(resolve, 100));
+  const cancelRecording = useCallback(() => {
+    if (!isRecording) return;
+    cancelledRef.current = true;
+    teardownRecorders();
+    audioChunksRef.current = [];
+    setIsRecording(false);
+    setTranscript("");
+    transcriptRef.current = "";
+  }, [isRecording, teardownRecorders]);
 
-    // Get prosody from Hume
-    let prosody: ProsodyScores;
-    const audioBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+  const stopRecording = useCallback(async () => {
+    if (!isRecording) return;
+    setIsRecording(false);
+    setIsProcessing(true);
 
-    if (humeSocketRef.current && audioBlob.size > 0) {
-      try {
-        const rawScores = await humeSocketRef.current.sendAudio(audioBlob);
-        prosody = mapHumeProsody(rawScores);
-      } catch (err) {
-        console.warn("Prosody analysis failed, using zero scores:", err);
-        prosody = zeroProsody();
-      }
-    } else {
-      prosody = zeroProsody();
-    }
+    teardownRecorders();
 
-    const finalTranscript = transcript.trim();
-    if (!finalTranscript) {
-      setError("No speech detected. Try again.");
-      setState("idle");
+    // Let the final chunks flush.
+    await new Promise((resolve) => setTimeout(resolve, 120));
+
+    const mime = audioChunksRef.current[0]?.type || "audio/webm";
+    const audioBlob = new Blob(audioChunksRef.current, { type: mime });
+    audioChunksRef.current = [];
+
+    if (audioBlob.size === 0) {
+      setError("No audio captured. Try again.");
+      setIsProcessing(false);
       return;
     }
 
-    // Hand off to the parent for BAML processing
-    setState("thinking");
-    callbacks.onVoiceInput(finalTranscript, prosody);
-  }, [state, transcript, callbacks]);
+    let prosody: ProsodyScores = zeroProsody();
+    if (humeSocketRef.current) {
+      try {
+        const raw = await humeSocketRef.current.sendAudio(audioBlob);
+        prosody = mapHumeProsody(raw);
+      } catch (err) {
+        console.warn("Prosody analysis failed; using zero scores.", err);
+      }
+    }
 
-  const stopPlayback = useCallback(() => {
-    playbackStopRef.current?.();
-    playbackStopRef.current = null;
-    setState("idle");
-  }, []);
+    let waveform: number[] = [];
+    let durationMs = 0;
+    try {
+      [waveform, durationMs] = await Promise.all([
+        computeWaveform(audioBlob, 32),
+        getAudioDurationMs(audioBlob),
+      ]);
+    } catch (err) {
+      console.warn("Waveform/duration computation failed", err);
+    }
+
+    let finalTranscript = transcriptRef.current.trim();
+    let sttError: string | null = null;
+    if (!finalTranscript) {
+      // Web Speech API isn't available (Firefox/Safari) — ask the server.
+      try {
+        finalTranscript = await transcribeViaServer(audioBlob);
+      } catch (err) {
+        sttError = err instanceof Error ? err.message : String(err);
+        console.warn("Server-side transcription failed:", sttError);
+      }
+    }
+    setIsProcessing(false);
+
+    if (!finalTranscript) {
+      setError(
+        sttError
+          ? `Transcription failed: ${sttError}`
+          : "No speech detected. Try again.",
+      );
+      return;
+    }
+
+    const audioUrl = URL.createObjectURL(audioBlob);
+    callbacks.onMemo({
+      transcript: finalTranscript,
+      prosody,
+      audioBlob,
+      audioUrl,
+      waveform,
+      durationMs,
+    });
+  }, [isRecording, teardownRecorders, callbacks]);
 
   const clearError = useCallback(() => setError(null), []);
 
-  // Expose a way for the parent to trigger TTS playback
-  // The parent calls this after DeriveVoice completes
-  // We'll expose it via a method on the hook return... but hooks can't expose imperative methods easily.
-  // Instead, the parent will call synthesizeSpeech + playAudio directly and update state via a passed setter.
-  // Let's simplify: expose setState so parent can transition to "speaking" and "idle"
-
   return {
-    state,
-    isVoiceMode,
     isSupported,
-    toggleVoiceMode,
-    startListening,
-    stopListening,
+    isRecording,
+    isProcessing,
     transcript,
-    stopPlayback,
+    startRecording,
+    stopRecording,
+    cancelRecording,
     error,
     clearError,
   };
 }
 
-/** Helper for parent to play TTS and manage state */
+async function transcribeViaServer(blob: Blob): Promise<string> {
+  const form = new FormData();
+  form.append("audio", blob, filenameForBlob(blob));
+  const res = await fetch("/api/voice/transcribe", {
+    method: "POST",
+    body: form,
+  });
+  if (!res.ok) {
+    let detail = `HTTP ${res.status}`;
+    try {
+      const body = (await res.json()) as { error?: string };
+      if (body?.error) detail = body.error;
+    } catch {
+      // non-JSON body; keep the HTTP code message
+    }
+    throw new Error(detail);
+  }
+  const data = (await res.json()) as { text?: string };
+  return (data.text ?? "").trim();
+}
+
+function filenameForBlob(blob: Blob): string {
+  const t = blob.type || "";
+  if (t.includes("ogg")) return "voice.ogg";
+  if (t.includes("mp4") || t.includes("m4a")) return "voice.m4a";
+  if (t.includes("mpeg") || t.includes("mp3")) return "voice.mp3";
+  if (t.includes("wav")) return "voice.wav";
+  return "voice.webm";
+}
+
+/** Generate TTS for the AI response and return both the playable URL and waveform data. */
+export async function deriveAiVoiceAssets(params: TTSParams): Promise<{
+  audioUrl: string;
+  audioBlob: Blob;
+  waveform: number[];
+  durationMs: number;
+}> {
+  const arrayBuffer = await synthesizeSpeech(params);
+  const audioBlob = new Blob([arrayBuffer], { type: "audio/mpeg" });
+  const audioUrl = URL.createObjectURL(audioBlob);
+  let waveform: number[] = [];
+  let durationMs = 0;
+  try {
+    [waveform, durationMs] = await Promise.all([
+      computeWaveform(arrayBuffer, 32),
+      getAudioDurationMs(arrayBuffer),
+    ]);
+  } catch (err) {
+    console.warn("AI waveform computation failed", err);
+  }
+  return { audioUrl, audioBlob, waveform, durationMs };
+}
+
+/** Backwards-compatible helper kept for any callers that want fire-and-forget playback. */
 export async function playTTSResponse(
   params: TTSParams,
   onStart: () => void,
-  onEnd: () => void
+  onEnd: () => void,
 ): Promise<{ stop: () => void }> {
   onStart();
   const audioData = await synthesizeSpeech(params);

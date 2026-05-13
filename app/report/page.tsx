@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,40 +72,86 @@ export default function ReportPage() {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [grade, setGrade] = useState<Grade | null>(null);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get("id");
   const gradeMutation = useGradeActiveListening({ stream: false });
 
   useEffect(() => {
-    const loadSessionData = () => {
-      try {
-        const storedData = localStorage.getItem("lastSession");
-        if (!storedData) {
-          toast.error("No session data found. Please complete a training session first.");
-          router.push("/train");
-          return;
-        }
+    // Two loading paths: DB-backed (?id=<sessionId>, logged-in users) or
+    // legacy localStorage (anonymous). Once Phase 2 quota gating ships,
+    // the localStorage path goes away.
+    if (sessionId) {
+      loadFromDb(sessionId);
+    } else {
+      loadFromLocalStorage();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId]);
 
-        const parsed = JSON.parse(storedData);
-        setSessionData(parsed);
-        generateGrade(parsed);
-      } catch (error) {
-        console.error("Error loading session data:", error);
-        toast.error("Failed to load session data.");
+  async function loadFromDb(id: string) {
+    try {
+      const res = await fetch(`/api/sessions/${id}`);
+      if (!res.ok) {
+        toast.error("Session not found.");
         router.push("/train");
+        return;
       }
-    };
+      const data = await res.json();
+      setSessionData({
+        aiName: data.aiName ?? "Coach",
+        scenario: data.scenario,
+        messages: data.messages,
+        timestamp: data.endedAt ?? data.createdAt,
+      });
 
-    loadSessionData();
-  }, [router]);
+      if (data.grade) {
+        setGrade(data.grade);
+        return;
+      }
+      // Grade not cached yet — fetch it from the server (will compute
+      // once, then cache in sessions.grade_json).
+      const gradeRes = await fetch(`/api/sessions/${id}/grade`, {
+        method: "POST",
+      });
+      if (gradeRes.ok) {
+        setGrade(await gradeRes.json());
+      } else {
+        toast.error("Failed to generate grade.");
+      }
+    } catch (err) {
+      console.error("Error loading session from DB:", err);
+      toast.error("Failed to load session data.");
+      router.push("/train");
+    }
+  }
 
-  // Handle grade response when mutation completes
+  function loadFromLocalStorage() {
+    try {
+      const storedData = localStorage.getItem("lastSession");
+      if (!storedData) {
+        toast.error("No session data found. Please complete a training session first.");
+        router.push("/train");
+        return;
+      }
+      const parsed = JSON.parse(storedData);
+      setSessionData(parsed);
+      generateGrade(parsed);
+    } catch (error) {
+      console.error("Error loading session data:", error);
+      toast.error("Failed to load session data.");
+      router.push("/train");
+    }
+  }
+
+  // Handle grade response when client-side mutation completes (legacy
+  // localStorage path only).
   useEffect(() => {
     if (gradeMutation.data && gradeMutation.isSuccess) {
       setGrade(gradeMutation.data);
-      gradeMutation.reset(); // Reset for next call
+      gradeMutation.reset();
     }
   }, [gradeMutation.data, gradeMutation.isSuccess]);
 
-  // Handle errors
   useEffect(() => {
     if (gradeMutation.error) {
       console.error("Error generating grade:", gradeMutation.error);

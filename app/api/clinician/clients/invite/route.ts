@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
-import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { clientInvitations } from "@/lib/db/schema";
-import { getEmailProvider } from "@/lib/email";
 import { z } from "zod";
+import { auth } from "@/lib/auth";
+import { getEmailProvider } from "@/lib/email";
+import {
+  createClientInvitation,
+  findClientInvitationByClinicianAndEmail,
+} from "@/lib/db/queries/client-invitations";
 
 const inviteSchema = z.object({
   email: z.string().email(),
@@ -16,43 +17,28 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const body = await req.json();
-  const parsed = inviteSchema.safeParse(body);
+  const parsed = inviteSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid email" }, { status: 400 });
   }
 
   const { email } = parsed.data;
-
-  // Check for existing invitation from this clinician
-  const [existing] = await db
-    .select()
-    .from(clientInvitations)
-    .where(
-      and(
-        eq(clientInvitations.clinicianId, session.user.id),
-        eq(clientInvitations.email, email)
-      )
-    )
-    .limit(1);
-
-  if (existing) {
+  if (
+    await findClientInvitationByClinicianAndEmail(session.user.id, email)
+  ) {
     return NextResponse.json(
       { error: "This email has already been invited" },
       { status: 409 }
     );
   }
 
-  const [invitation] = await db
-    .insert(clientInvitations)
-    .values({ clinicianId: session.user.id, email })
-    .returning();
+  const invitation = await createClientInvitation({
+    clinicianId: session.user.id,
+    email,
+  });
 
-  // Send invitation email
-  const emailProvider = getEmailProvider();
   const registerUrl = `${process.env.NEXTAUTH_URL ?? "http://localhost:3000"}/register?invitation=${invitation.id}`;
-
-  await emailProvider.send({
+  await getEmailProvider().send({
     to: email,
     subject: "You've been invited to Active Listening Dojo",
     textBody: `You've been invited to practice active listening skills.\n\nRegister here: ${registerUrl}`,

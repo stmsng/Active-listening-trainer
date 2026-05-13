@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { characters } from "@/lib/db/schema";
 import { characterSchema } from "@/lib/validations/character";
+import {
+  deleteCharacter,
+  findCharacterByIdAndClinician,
+  updateCharacter,
+} from "@/lib/db/queries/characters";
 
 export async function GET(
   _req: Request,
@@ -15,16 +17,10 @@ export async function GET(
   }
 
   const { id } = await params;
-  const [row] = await db
-    .select()
-    .from(characters)
-    .where(and(eq(characters.id, id), eq(characters.clinicianId, session.user.id)))
-    .limit(1);
-
+  const row = await findCharacterByIdAndClinician(id, session.user.id);
   if (!row) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-
   return NextResponse.json(row);
 }
 
@@ -38,8 +34,7 @@ export async function PUT(
   }
 
   const { id } = await params;
-  const body = await req.json();
-  const parsed = characterSchema.safeParse(body);
+  const parsed = characterSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Invalid input" },
@@ -47,16 +42,14 @@ export async function PUT(
     );
   }
 
-  const [row] = await db
-    .update(characters)
-    .set({ ...parsed.data, updatedAt: new Date() })
-    .where(and(eq(characters.id, id), eq(characters.clinicianId, session.user.id)))
-    .returning();
-
+  const row = await updateCharacter({
+    id,
+    clinicianId: session.user.id,
+    input: parsed.data,
+  });
   if (!row) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-
   return NextResponse.json(row);
 }
 
@@ -70,9 +63,6 @@ export async function DELETE(
   }
 
   const { id } = await params;
-  await db
-    .delete(characters)
-    .where(and(eq(characters.id, id), eq(characters.clinicianId, session.user.id)));
-
+  await deleteCharacter(id, session.user.id);
   return NextResponse.json({ ok: true });
 }

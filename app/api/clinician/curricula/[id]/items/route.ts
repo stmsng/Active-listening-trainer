@@ -1,9 +1,8 @@
 import { NextResponse } from "next/server";
-import { eq, and } from "drizzle-orm";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { curricula, curriculumItems } from "@/lib/db/schema";
 import { curriculumItemSchema } from "@/lib/validations/curriculum";
+import { findCurriculumByIdAndClinician } from "@/lib/db/queries/curricula";
+import { createCurriculumItem } from "@/lib/db/queries/curriculum-items";
 
 export async function POST(
   req: Request,
@@ -15,20 +14,11 @@ export async function POST(
   }
 
   const { id } = await params;
-
-  // Verify curriculum ownership
-  const [curriculum] = await db
-    .select()
-    .from(curricula)
-    .where(and(eq(curricula.id, id), eq(curricula.clinicianId, session.user.id)))
-    .limit(1);
-
-  if (!curriculum) {
+  if (!(await findCurriculumByIdAndClinician(id, session.user.id))) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const body = await req.json();
-  const parsed = curriculumItemSchema.safeParse(body);
+  const parsed = curriculumItemSchema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.issues[0]?.message ?? "Invalid input" },
@@ -36,10 +26,9 @@ export async function POST(
     );
   }
 
-  const [row] = await db
-    .insert(curriculumItems)
-    .values({ ...parsed.data, curriculumId: id })
-    .returning();
-
+  const row = await createCurriculumItem({
+    curriculumId: id,
+    input: parsed.data,
+  });
   return NextResponse.json(row, { status: 201 });
 }
